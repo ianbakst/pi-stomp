@@ -26,7 +26,7 @@ hardware:
   - id: 0
     debounce_input: 0
     gpio_output: 0
-    bypass: LEFT
+    bypass: SHORT
     preset: UP
   - id: 1
     debounce_input: 1
