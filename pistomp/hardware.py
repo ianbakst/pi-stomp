@@ -252,14 +252,14 @@ class Hardware:
                     if f[action] == Token.PRESET:
                         preset_value = f.get(f"{action}-{Token.PRESET}")
                         if preset_value == Token.UP:
-                            fs.add_preset(callback=self.mod.preset_incr_and_change)
+                            fs.add_preset(callback=self.mod.preset_incr_and_change, short=(action == Token.SHORT))
                             fs.set_display_label("Pre+")
                         elif preset_value == Token.DOWN:
-                            fs.add_preset(callback=self.mod.preset_decr_and_change)
+                            fs.add_preset(callback=self.mod.preset_decr_and_change, short=(action == Token.SHORT))
                             fs.set_display_label("Pre-")
                         elif isinstance(preset_value, int):
                             fs.add_preset(
-                                callback=self.mod.preset_set_and_change, callback_arg=preset_value
+                                callback=self.mod.preset_set_and_change, callback_arg=preset_value, short=(action == Token.SHORT)
                             )
                             fs.set_display_label(str(preset_value))
                     if Token.MIDI_CC in f:
