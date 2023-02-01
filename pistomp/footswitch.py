@@ -34,7 +34,7 @@ class Footswitch(gpioswitch.GpioSwitch):
         self.preset_callback = None
         self.preset_callback_arg = None
         self.lcd_color = None
-        self.relay_action_short = False
+        self.relay_action_short = True
         self.preset_action_short = True
 
         if led_pin is not None:
@@ -70,7 +70,7 @@ class Footswitch(gpioswitch.GpioSwitch):
 
         # Update Relay (if relay is associated with this footswitch)
         if len(self.relay_list) > 0:
-            if short is self.relay_action_short:
+            if short == self.relay_action_short:
                 # Pin kept low (long press)
                 # toggle the relay and LED, exit this method
                 self.enabled = new_enabled
@@ -85,7 +85,7 @@ class Footswitch(gpioswitch.GpioSwitch):
 
         # If mapped to preset change
         if self.preset_callback is not None:
-            if short is self.preset_action_short:
+            if short == self.preset_action_short:
                 # Change the preset and exit this method. Don't flip "enabled" since
                 # there is no "toggle" action associated with a preset
                 if self.preset_callback_arg is None:
