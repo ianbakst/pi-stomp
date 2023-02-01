@@ -27,8 +27,8 @@ hardware:
     debounce_input: 0
     gpio_output: 0
     short: BYPASS
-    long: preset
-    long-preset: UP
+#    long: preset
+#    long-preset: UP
   - id: 1
     debounce_input: 1
     gpio_output: 13
