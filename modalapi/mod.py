@@ -36,8 +36,9 @@ from pistomp.handler import Handler
 from enum import Enum
 from pathlib import Path
 
-#sys.path.append('/usr/lib/python3.5/site-packages')  # TODO possibly /usr/local/modep/mod-ui
-#from mod.development import FakeHost as Host
+# sys.path.append('/usr/lib/python3.5/site-packages')  # TODO possibly /usr/local/modep/mod-ui
+# from mod.development import FakeHost as Host
+
 
 class TopEncoderMode(Enum):
     DEFAULT = 0
@@ -49,10 +50,12 @@ class TopEncoderMode(Enum):
     HEADPHONE_VOLUME = 6
     INPUT_GAIN = 7
 
+
 class BotEncoderMode(Enum):
     DEFAULT = 0
     DEEP_EDIT = 1
     VALUE_EDIT = 2
+
 
 class UniversalEncoderMode(Enum):
     DEFAULT = 0
@@ -67,6 +70,7 @@ class UniversalEncoderMode(Enum):
     VALUE_EDIT = 9
     LOADING = 10
 
+
 class SelectedType(Enum):
     PEDALBOARD = 0
     PRESET = 1
@@ -76,11 +80,13 @@ class SelectedType(Enum):
     WIFI = 5
     SYSTEM = 6
 
+
 # Replace this with menu objects
 class MenuType(Enum):
     MENU_NONE = 0
     MENU_SYSTEM = 1
     MENU_INFO = 2
+
 
 class Mod(Handler):
     __single = None
@@ -121,7 +127,7 @@ class Mod(Handler):
         self.git_describe = None
 
         self.current = None  # pointer to Current class
-        self.deep = None     # pointer to current Deep class
+        self.deep = None  # pointer to current Deep class
 
         self.selected_menu_index = 0
         self.menu_items = None
@@ -129,8 +135,11 @@ class Mod(Handler):
 
         # This file is modified when the pedalboard is changed via MOD UI
         self.pedalboard_modification_file = "/home/pistomp/data/last.json"
-        self.pedalboard_change_timestamp = os.path.getmtime(self.pedalboard_modification_file)\
-            if Path(self.pedalboard_modification_file).exists() else 0
+        self.pedalboard_change_timestamp = (
+            os.path.getmtime(self.pedalboard_modification_file)
+            if Path(self.pedalboard_modification_file).exists()
+            else 0
+        )
 
         self.wifi_manager = Wifi.WifiManager()
 
@@ -167,7 +176,6 @@ class Mod(Handler):
 
     def add_lcd(self, lcd):
         self.lcd = lcd
-
 
     #
     # Dual Encoder State Machine (used for pi-Stomp v1)
@@ -228,9 +236,11 @@ class Mod(Handler):
 
     def bottom_encoder_sw(self, value):
         # State machine for bottom rotary encoder switch
-        if (self.top_encoder_mode == TopEncoderMode.SYSTEM_MENU or
-                self.top_encoder_mode == TopEncoderMode.HEADPHONE_VOLUME or
-                self.top_encoder_mode == TopEncoderMode.INPUT_GAIN):
+        if (
+            self.top_encoder_mode == TopEncoderMode.SYSTEM_MENU
+            or self.top_encoder_mode == TopEncoderMode.HEADPHONE_VOLUME
+            or self.top_encoder_mode == TopEncoderMode.INPUT_GAIN
+        ):
             return  # Ignore bottom encoder if top encoder has navigated to the system menu
         mode = self.bot_encoder_mode
         if value == AnalogSwitch.Value.RELEASED:
@@ -238,7 +248,7 @@ class Mod(Handler):
                 self.toggle_plugin_bypass()
             elif mode == BotEncoderMode.DEEP_EDIT:
                 self.menu_action()
-            #elif mode == BotEncoderMode.VALUE_EDIT:
+            # elif mode == BotEncoderMode.VALUE_EDIT:
             #    self.parameter_value_change()
         elif value == AnalogSwitch.Value.LONGPRESSED:
             if mode == BotEncoderMode.DEFAULT or BotEncoderMode.VALUE_EDIT:
@@ -249,9 +259,11 @@ class Mod(Handler):
                 self.update_lcd()
 
     def bot_encoder_select(self, direction):
-        if (self.top_encoder_mode == TopEncoderMode.SYSTEM_MENU or
-                self.top_encoder_mode == TopEncoderMode.HEADPHONE_VOLUME or
-                self.top_encoder_mode == TopEncoderMode.INPUT_GAIN):
+        if (
+            self.top_encoder_mode == TopEncoderMode.SYSTEM_MENU
+            or self.top_encoder_mode == TopEncoderMode.HEADPHONE_VOLUME
+            or self.top_encoder_mode == TopEncoderMode.INPUT_GAIN
+        ):
             return
         mode = self.bot_encoder_mode
         if mode == BotEncoderMode.DEFAULT:
@@ -311,8 +323,10 @@ class Mod(Handler):
                 self.parameter_edit_show(self.selected_menu_index)
 
         elif value == EncoderSwitch.Value.LONGPRESSED:
-            if mode == UniversalEncoderMode.VALUE_EDIT or (mode == UniversalEncoderMode.SCROLL and
-                    self.selectable_items[self.selectable_index][0] == SelectedType.PLUGIN):
+            if mode == UniversalEncoderMode.VALUE_EDIT or (
+                mode == UniversalEncoderMode.SCROLL
+                and self.selectable_items[self.selectable_index][0] == SelectedType.PLUGIN
+            ):
                 self.universal_encoder_mode = UniversalEncoderMode.DEEP_EDIT
                 self.parameter_edit_show()
             elif mode == UniversalEncoderMode.DEFAULT:
@@ -349,8 +363,9 @@ class Mod(Handler):
     def universal_select(self, direction):
         if self.current.pedalboard is not None:
             prev_type = self.selectable_items[self.selectable_index][0]
-            index = ((self.selectable_index + 1) if (direction == 1)
-                     else (self.selectable_index - 1)) % len(self.selectable_items)
+            index = (
+                (self.selectable_index + 1) if (direction == 1) else (self.selectable_index - 1)
+            ) % len(self.selectable_items)
             self.selectable_index = index
             item_type = self.selectable_items[index][0]
 
@@ -410,8 +425,10 @@ class Mod(Handler):
             self.lcd.draw_info_message("Loading...")
             mod_bundle = self.get_pedalboard_bundle_from_mod()
             if mod_bundle:
-                logging.info("Pedalboard changed via MOD from: %s to: %s" %
-                             (self.current.pedalboard.bundle, mod_bundle))
+                logging.info(
+                    "Pedalboard changed via MOD from: %s to: %s"
+                    % (self.current.pedalboard.bundle, mod_bundle)
+                )
                 pb = self.pedalboards[mod_bundle]
                 self.set_current_pedalboard(pb)
 
@@ -441,20 +458,20 @@ class Mod(Handler):
             pedalboard.load_bundle(bundle, self.plugin_dict)
             self.pedalboards[bundle] = pedalboard
             self.pedalboard_list.append(pedalboard)
-            #logging.debug("dump: %s" % pedalboard.to_json())
+            # logging.debug("dump: %s" % pedalboard.to_json())
 
         # TODO - example of querying host
-        #bund = self.get_current_pedalboard()
-        #self.host.load(bund, False)
-        #logging.debug("Preset: %s %d" % (bund, self.host.pedalboard_preset))  # this value not initialized
-        #logging.debug("Preset: %s" % self.get_current_preset_name())
+        # bund = self.get_current_pedalboard()
+        # self.host.load(bund, False)
+        # logging.debug("Preset: %s %d" % (bund, self.host.pedalboard_preset))  # this value not initialized
+        # logging.debug("Preset: %s" % self.get_current_preset_name())
 
     def get_pedalboard_bundle_from_mod(self):
         # Assumes the caller has already checked for existence of the file
         mod_bundle = None
-        with open(self.pedalboard_modification_file, 'r') as file:
+        with open(self.pedalboard_modification_file, "r") as file:
             j = json.load(file)
-            mod_bundle = util.DICT_GET(j, 'pedalboard')
+            mod_bundle = util.DICT_GET(j, "pedalboard")
         return mod_bundle
 
     def get_current_pedalboard_bundle_path(self):
@@ -474,7 +491,7 @@ class Mod(Handler):
         config_file = Path(pedalboard.bundle) / "config.yml"
         cfg = None
         if config_file.exists():
-            with open(config_file.as_posix(), 'r') as ymlfile:
+            with open(config_file.as_posix(), "r") as ymlfile:
                 cfg = yaml.load(ymlfile, Loader=yaml.SafeLoader)
         self.hardware.reinit(cfg)
 
@@ -502,7 +519,7 @@ class Mod(Handler):
         # any real time settings
         footswitch_plugins = []
         if self.current.pedalboard:
-            #logging.debug(self.current.pedalboard.to_json())
+            # logging.debug(self.current.pedalboard.to_json())
             for plugin in self.current.pedalboard.plugins:
                 if plugin is None or plugin.parameters is None:
                     continue
@@ -521,13 +538,16 @@ class Mod(Handler):
                                 footswitch_plugins.append(plugin)
                             elif isinstance(controller, AnalogMidiControl):
                                 key = "%s:%s" % (plugin.instance_id, param.name)
-                                controller.cfg[Token.CATEGORY] = plugin.category  # somewhat LAME adding to cfg dict
+                                controller.cfg[
+                                    Token.CATEGORY
+                                ] = plugin.category  # somewhat LAME adding to cfg dict
                                 controller.cfg[Token.TYPE] = controller.type
                                 self.current.analog_controllers[key] = controller.cfg
 
             # Move Footswitch controlled plugins to the end of the list
-            self.current.pedalboard.plugins = [elem for elem in self.current.pedalboard.plugins
-                                               if elem.has_footswitch is False]
+            self.current.pedalboard.plugins = [
+                elem for elem in self.current.pedalboard.plugins if elem.has_footswitch is False
+            ]
             self.current.pedalboard.plugins += footswitch_plugins
 
     def pedalboard_select(self, direction):
@@ -536,10 +556,14 @@ class Mod(Handler):
             self.lcd.draw_title(self.current.pedalboard.title, None, True, False)
             return
         cur_idx = self.selected_pedalboard_index
-        next_idx = ((cur_idx - 1) if (direction == 1) else (cur_idx + 1)) % len(self.pedalboard_list)
+        next_idx = ((cur_idx - 1) if (direction == 1) else (cur_idx + 1)) % len(
+            self.pedalboard_list
+        )
         if self.pedalboard_list[next_idx].bundle in self.pedalboards:
             highlight_only = self.universal_encoder_mode == UniversalEncoderMode.PEDALBOARD_SELECT
-            self.lcd.draw_title(self.pedalboard_list[next_idx].title, None, True, False, highlight_only)
+            self.lcd.draw_title(
+                self.pedalboard_list[next_idx].title, None, True, False, highlight_only
+            )
             self.selected_pedalboard_index = next_idx
 
     def pedalboard_change(self):
@@ -556,7 +580,9 @@ class Mod(Handler):
             data = {"bundlepath": bundlepath}
             resp2 = req.post(uri, data)
             if resp2.status_code != 200:
-                logging.error("Bad Rest request: %s %s  status: %d" % (uri, data, resp2.status_code))
+                logging.error(
+                    "Bad Rest request: %s %s  status: %d" % (uri, data, resp2.status_code)
+                )
 
             # Now that it's presumably changed, load the dynamic "current" data
             self.set_current_pedalboard(self.pedalboard_list[self.selected_pedalboard_index])
@@ -601,7 +627,9 @@ class Mod(Handler):
         index = self.selected_preset_index
         # 0 means the preset field is selected but a new preset hasn't been scrolled to yet
         if direction != 0:
-            index = self.next_preset_index(self.current.presets, self.selected_preset_index, direction == 1)
+            index = self.next_preset_index(
+                self.current.presets, self.selected_preset_index, direction == 1
+            )
         self.preset_select_index(index)
 
     def preset_select_index(self, index):
@@ -610,21 +638,23 @@ class Mod(Handler):
         self.selected_preset_index = index
         preset_name = self.current.presets[index]
         highlight_only = self.universal_encoder_mode == UniversalEncoderMode.PRESET_SELECT
-        self.lcd.draw_title(self.current.pedalboard.title, preset_name, False, True, highlight_only)
+        self.lcd.draw_title(
+            self.current.pedalboard.title, preset_name, False, True, highlight_only
+        )
         return preset_name
 
     def preset_change(self):
         index = self.selected_preset_index
         logging.info("preset change: %d" % index)
         self.lcd.draw_info_message("Loading...")
-        url = (self.root_uri + "snapshot/load?id=%d" % index)
+        url = self.root_uri + "snapshot/load?id=%d" % index
         # req.get(self.root_uri + "reset")
         resp = req.get(url)
         if resp.status_code != 200:
             logging.error("Bad Rest request: %s status: %d" % (url, resp.status_code))
         self.current.preset_index = index
 
-        #load of the preset might have changed plugin bypass status
+        # load of the preset might have changed plugin bypass status
         self.preset_change_plugin_update()
         self.bot_encoder_mode = BotEncoderMode.DEFAULT
 
@@ -655,7 +685,9 @@ class Mod(Handler):
     def preset_change_plugin_update(self):
         # Now that the preset has changed on the host, update plugin bypass indicators
         for p in self.current.pedalboard.plugins:
-            uri = self.root_uri + "effect/parameter/pi_stomp_get//graph" + p.instance_id + "/:bypass"
+            uri = (
+                self.root_uri + "effect/parameter/pi_stomp_get//graph" + p.instance_id + "/:bypass"
+            )
             try:
                 resp = req.get(uri)
                 if resp.status_code == 200:
@@ -685,9 +717,12 @@ class Mod(Handler):
     def plugin_select(self, direction):
         if self.current.pedalboard is not None:
             pb = self.current.pedalboard
-            index = ((self.selected_plugin_index + 1) if (direction == 1)
-                    else (self.selected_plugin_index - 1)) % len(pb.plugins)
-            #index = self.next_plugin(pb.plugins, enc)
+            index = (
+                (self.selected_plugin_index + 1)
+                if (direction == 1)
+                else (self.selected_plugin_index - 1)
+            ) % len(pb.plugins)
+            # index = self.next_plugin(pb.plugins, enc)
             plugin = pb.plugins[index]  # TODO check index
             self.selected_plugin_index = index
             self.lcd.draw_plugin_select(plugin)
@@ -702,10 +737,12 @@ class Mod(Handler):
                         c.pressed(0)
                         return
             # Regular (non footswitch plugin)
-            url = self.root_uri + "effect/parameter/pi_stomp_set//graph%s/:bypass" % inst.instance_id
+            url = (
+                self.root_uri + "effect/parameter/pi_stomp_set//graph%s/:bypass" % inst.instance_id
+            )
             value = inst.toggle_bypass()
             code = self.parameter_set_send(url, "1" if value else "0", 200)
-            if (code != 200):
+            if code != 200:
                 inst.toggle_bypass()  # toggle back to original value since request wasn't successful
 
             #  Indicate change on LCD, and redraw selection(highlight)
@@ -753,25 +790,41 @@ class Mod(Handler):
 
     def system_info_load(self):
         try:
-            output = subprocess.check_output(['git', '--git-dir', self.homedir + '/.git',
-                                              '--work-tree', self.homedir, 'describe'])
+            output = subprocess.check_output(
+                [
+                    "git",
+                    "--git-dir",
+                    self.homedir + "/.git",
+                    "--work-tree",
+                    self.homedir,
+                    "describe",
+                ]
+            )
             if output:
                 self.git_describe = output.decode()
-                self.software_version = self.git_describe.split('-')[0]
+                self.software_version = self.git_describe.split("-")[0]
         except subprocess.CalledProcessError:
             logging.error("Cannot obtain git software tag info")
 
     def system_menu_show(self):
         self.current_menu = MenuType.MENU_SYSTEM
-        self.menu_items = {"0": {Token.NAME: "< Back to main screen", Token.ACTION: self.menu_back},
-                           "1": {Token.NAME: "System shutdown", Token.ACTION: self.system_menu_shutdown},
-                           "2": {Token.NAME: "System reboot", Token.ACTION: self.system_menu_reboot},
-                           "3": {Token.NAME: "System info", Token.ACTION: self.system_info_show},
-                           "4": {Token.NAME: "Save current pedalboard", Token.ACTION: self.system_menu_save_current_pb},
-                           "5": {Token.NAME: "Reload pedalboards", Token.ACTION: self.system_menu_reload},
-                           "6": {Token.NAME: "Restart sound engine", Token.ACTION: self.system_menu_restart_sound},
-                           "7": {Token.NAME: "Input Gain", Token.ACTION: self.system_menu_input_gain},
-                           "8": {Token.NAME: "Headphone Volume", Token.ACTION: self.system_menu_headphone_volume}}
+        self.menu_items = {
+            "0": {Token.NAME: "< Back to main screen", Token.ACTION: self.menu_back},
+            "1": {Token.NAME: "System shutdown", Token.ACTION: self.system_menu_shutdown},
+            "2": {Token.NAME: "System reboot", Token.ACTION: self.system_menu_reboot},
+            "3": {Token.NAME: "System info", Token.ACTION: self.system_info_show},
+            "4": {
+                Token.NAME: "Save current pedalboard",
+                Token.ACTION: self.system_menu_save_current_pb,
+            },
+            "5": {Token.NAME: "Reload pedalboards", Token.ACTION: self.system_menu_reload},
+            "6": {
+                Token.NAME: "Restart sound engine",
+                Token.ACTION: self.system_menu_restart_sound,
+            },
+            "7": {Token.NAME: "Input Gain", Token.ACTION: self.system_menu_input_gain},
+            "8": {Token.NAME: "Headphone Volume", Token.ACTION: self.system_menu_headphone_volume},
+        }
         self.lcd.menu_show("System menu", self.menu_items)
         # Trick: we display the wifi status in the menu, Ideally we need a better
         # state handling to know what needs to be displayed or not based on whether
@@ -787,26 +840,34 @@ class Mod(Handler):
 
     def system_info_populate_wifi(self):
         hotspot_active = False
-        key = 'hotspot_active'
+        key = "hotspot_active"
         if key in self.wifi_status:
             self.menu_items[key] = {Token.NAME: self.wifi_status[key], Token.ACTION: None}
             if self.wifi_status[key]:
                 hotspot_active = True
-        key = 'ip_address'
+        key = "ip_address"
         if key in self.wifi_status:
             self.menu_items["ip_addr"] = {Token.NAME: self.wifi_status[key], Token.ACTION: None}
         else:
-            self.menu_items["ip_addr"] = {Token.NAME: '<unknown>', Token.ACTION: None}
+            self.menu_items["ip_addr"] = {Token.NAME: "<unknown>", Token.ACTION: None}
         self.menu_items.pop("Enable Hotspot", None)
         self.menu_items.pop("Disable Hotspot", None)
         if hotspot_active:
-            self.menu_items["Disable Hotspot"] = {Token.NAME: "", Token.ACTION: self.system_disable_hotspot}
+            self.menu_items["Disable Hotspot"] = {
+                Token.NAME: "",
+                Token.ACTION: self.system_disable_hotspot,
+            }
         else:
-            self.menu_items["Enable Hotspot"] = {Token.NAME: "", Token.ACTION: self.system_enable_hotspot}
+            self.menu_items["Enable Hotspot"] = {
+                Token.NAME: "",
+                Token.ACTION: self.system_enable_hotspot,
+            }
 
     def system_info_show(self):
         self.current_menu = MenuType.MENU_INFO
-        self.menu_items = {"0": {Token.NAME: "< Back to main screen", Token.ACTION: self.menu_back}}
+        self.menu_items = {
+            "0": {Token.NAME: "< Back to main screen", Token.ACTION: self.menu_back}
+        }
         self.menu_items["SW:"] = {Token.NAME: self.git_describe, Token.ACTION: None}
         self.system_info_populate_wifi()
         self.lcd.menu_show("System Info", self.menu_items)
@@ -853,23 +914,27 @@ class Mod(Handler):
     def system_menu_restart_sound(self):
         self.lcd.splash_show()
         logging.info("Restart sound engine (jack)")
-        os.system('sudo systemctl restart jack')
+        os.system("sudo systemctl restart jack")
 
     def system_menu_shutdown(self):
         self.lcd.splash_show(False)
         logging.info("System Shutdown")
-        os.system('sudo systemctl --no-wall poweroff')
+        os.system("sudo systemctl --no-wall poweroff")
 
     def system_menu_reboot(self):
         self.lcd.splash_show(False)
         logging.info("System Reboot")
-        os.system('sudo systemctl reboot')
+        os.system("sudo systemctl reboot")
 
     def system_menu_input_gain(self):
         title = "Input Gain"
         self.top_encoder_mode = TopEncoderMode.INPUT_GAIN
         self.universal_encoder_mode = UniversalEncoderMode.INPUT_GAIN
-        info = {"shortName": title, "symbol": "igain", "ranges": {"minimum": -19.75, "maximum": 12}}
+        info = {
+            "shortName": title,
+            "symbol": "igain",
+            "ranges": {"minimum": -19.75, "maximum": 12},
+        }
         self.system_menu_parameter(title, self.audiocard.CAPTURE_VOLUME, info)
 
     def system_menu_headphone_volume(self):
@@ -888,7 +953,9 @@ class Mod(Handler):
         self.lcd.draw_info_message(title)
 
     def input_gain_commit(self):
-        self.audiocard.set_parameter(self.audiocard.CAPTURE_VOLUME, self.deep.selected_parameter.value)
+        self.audiocard.set_parameter(
+            self.audiocard.CAPTURE_VOLUME, self.deep.selected_parameter.value
+        )
 
     def headphone_volume_commit(self):
         self.audiocard.set_parameter(self.audiocard.MASTER, self.deep.selected_parameter.value)
@@ -920,16 +987,20 @@ class Mod(Handler):
 
     def parameter_edit_show(self, selected=0):
         plugin = self.get_selected_instance()
-        self.deep = self.Deep(plugin)  # TODO this creates a new obj every time menu is shown, singleton?
+        self.deep = self.Deep(
+            plugin
+        )  # TODO this creates a new obj every time menu is shown, singleton?
         self.deep.selected_parameter_index = 0
         self.menu_items = {0: {Token.NAME: "< Back to main screen", Token.ACTION: self.menu_back}}
         i = 1
         for p in self.deep.parameters:
             if p.symbol == ":bypass":
                 continue
-            self.menu_items[i] = {Token.NAME: p.name,
-                                       Token.ACTION: self.parameter_value_show,
-                                       Token.PARAMETER: p}
+            self.menu_items[i] = {
+                Token.NAME: p.name,
+                Token.ACTION: self.parameter_value_show,
+                Token.PARAMETER: p,
+            }
             i = i + 1
         self.lcd.menu_show(plugin.instance_id, self.menu_items)
         self.selected_menu_index = selected
@@ -949,7 +1020,9 @@ class Mod(Handler):
         param = self.deep.selected_parameter
         value = float(param.value)
         # TODO tweak value won't change from call to call, cache it
-        tweak = util.renormalize_float(self.parameter_tweak_amount, 0, 127, param.minimum, param.maximum)
+        tweak = util.renormalize_float(
+            self.parameter_tweak_amount, 0, 127, param.minimum, param.maximum
+        )
         new_value = round(((value - tweak) if (direction != 1) else (value + tweak)), 2)
         if new_value > param.maximum:
             new_value = param.maximum
@@ -957,14 +1030,19 @@ class Mod(Handler):
             new_value = param.minimum
         if new_value is value:
             return
-        self.deep.selected_parameter.value = new_value  # TODO somewhat risky to change value before committed
+        self.deep.selected_parameter.value = (
+            new_value  # TODO somewhat risky to change value before committed
+        )
         commit_callback()
         self.lcd.draw_value_edit_graph(param, new_value)
 
     def parameter_value_commit(self):
         param = self.deep.selected_parameter
-        url = self.root_uri + "effect/parameter/pi_stomp_set//graph%s/%s" % (self.deep.plugin.instance_id, param.symbol)
-        formatted_value = ("%.1f" % param.value)
+        url = self.root_uri + "effect/parameter/pi_stomp_set//graph%s/%s" % (
+            self.deep.plugin.instance_id,
+            param.symbol,
+        )
+        formatted_value = "%.1f" % param.value
         self.parameter_set_send(url, formatted_value, 200)
 
     def parameter_set_send(self, url, value, expect_code):
@@ -999,17 +1077,28 @@ class Mod(Handler):
         invert_pb = False
         invert_pre = False
         highlight_only = False
-        if self.top_encoder_mode == TopEncoderMode.PEDALBOARD_SELECT or \
-                self.universal_encoder_mode == UniversalEncoderMode.PEDALBOARD_SELECT:
+        if (
+            self.top_encoder_mode == TopEncoderMode.PEDALBOARD_SELECT
+            or self.universal_encoder_mode == UniversalEncoderMode.PEDALBOARD_SELECT
+        ):
             invert_pb = True
-        if self.top_encoder_mode == TopEncoderMode.PRESET_SELECT or \
-                self.universal_encoder_mode == UniversalEncoderMode.PRESET_SELECT:
+        if (
+            self.top_encoder_mode == TopEncoderMode.PRESET_SELECT
+            or self.universal_encoder_mode == UniversalEncoderMode.PRESET_SELECT
+        ):
             invert_pre = True
-        if self.universal_encoder_mode == UniversalEncoderMode.PEDALBOARD_SELECT or \
-                self.universal_encoder_mode == UniversalEncoderMode.PRESET_SELECT:
+        if (
+            self.universal_encoder_mode == UniversalEncoderMode.PEDALBOARD_SELECT
+            or self.universal_encoder_mode == UniversalEncoderMode.PRESET_SELECT
+        ):
             highlight_only = True
-        self.lcd.draw_title(self.current.pedalboard.title,
-            util.DICT_GET(self.current.presets, self.current.preset_index), invert_pb, invert_pre, highlight_only)
+        self.lcd.draw_title(
+            self.current.pedalboard.title,
+            util.DICT_GET(self.current.presets, self.current.preset_index),
+            invert_pb,
+            invert_pre,
+            highlight_only,
+        )
 
     def update_lcd_plugins(self):
         self.lcd.draw_plugins(self.current.pedalboard.plugins)

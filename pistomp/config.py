@@ -23,6 +23,6 @@ def load_default_cfg():
     # Read the default config file - should only need to read once per session
     script_dir = os.path.dirname(os.path.realpath(__file__))
     default_config_file = os.path.join(script_dir, DEFAULT_CONFIG_FILE)
-    with open(default_config_file, 'r') as ymlfile:
+    with open(default_config_file, "r") as ymlfile:
         cfg = yaml.load(ymlfile, Loader=yaml.SafeLoader)
         return cfg

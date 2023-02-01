@@ -27,8 +27,8 @@ import common.util as util
 import modalapi.parameter as Parameter
 import modalapi.plugin as Plugin
 
-class Pedalboard:
 
+class Pedalboard:
     def __init__(self, title, bundle):
         self.root_uri = "http://localhost:80/"
         self.title = title
@@ -43,9 +43,9 @@ class Pedalboard:
         self.world.load_plugin_classes()
 
         self.uri_block = self.world.new_uri("http://drobilla.net/ns/ingen#block")
-        self.uri_head  = self.world.new_uri("http://drobilla.net/ns/ingen#head")
-        self.uri_port  = self.world.new_uri("http://lv2plug.in/ns/lv2core#port")
-        self.uri_tail  = self.world.new_uri("http://drobilla.net/ns/ingen#tail")
+        self.uri_head = self.world.new_uri("http://drobilla.net/ns/ingen#head")
+        self.uri_port = self.world.new_uri("http://lv2plug.in/ns/lv2core#port")
+        self.uri_tail = self.world.new_uri("http://drobilla.net/ns/ingen#tail")
         self.uri_value = self.world.new_uri("http://drobilla.net/ns/ingen#value")
 
     def get_pedalboard_plugin(self, world, bundlepath):
@@ -60,14 +60,14 @@ class Pedalboard:
         self.world.load_bundle(bundlenode)
 
         # free bundlenode, no longer needed
-        #self.world.node_free(bundlenode)  # TODO find out why this is no longer necessary (why did API method go away)
+        # self.world.node_free(bundlenode)  # TODO find out why this is no longer necessary (why did API method go away)
 
         # get all plugins in the bundle
         ps = self.world.get_all_plugins()
 
         # make sure the bundle includes 1 and only 1 plugin (the pedalboard)
         if len(ps) != 1:
-            raise Exception('get_pedalboard_info(%s) - bundle has 0 or > 1 plugin'.format(bundle))
+            raise Exception("get_pedalboard_info(%s) - bundle has 0 or > 1 plugin".format(bundle))
 
         # no indexing in python-lilv yet, just get the first item
         plugin = None
@@ -76,22 +76,24 @@ class Pedalboard:
             break
 
         if plugin is None:
-            raise Exception('get_pedalboard_plugin(%s)'.format(bundle))
+            raise Exception("get_pedalboard_plugin(%s)".format(bundle))
 
         return plugin
 
     def get_plugin_data(self, uri):
         url = self.root_uri + "effect/get?uri=" + urllib.parse.quote(uri)
         try:
-            resp = req.get(url, headers={'Cache-Control': 'no-cache', 'Pragma': 'no-cache'})
+            resp = req.get(url, headers={"Cache-Control": "no-cache", "Pragma": "no-cache"})
         except:  # TODO
             logging.error("Cannot connect to mod-host.")
             sys.exit()
 
         if resp.status_code != 200:
-            logging.error("mod-host not able to get plugin data: %s\nStatus: %s" % (url, resp.status_code))
+            logging.error(
+                "mod-host not able to get plugin data: %s\nStatus: %s" % (url, resp.status_code)
+            )
             return {}
-            #sys.exit()
+            # sys.exit()
 
         return json.loads(resp.text)
 
@@ -128,7 +130,9 @@ class Pedalboard:
         u = self.world.new_uri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
         plugin_types = [i for i in util.LILV_FOREACH(plugin.get_value(u), fill_in_type)]
         if "http://moddevices.com/ns/modpedal#Pedalboard" not in plugin_types:
-            raise Exception('get_pedalboard_info(%s) - plugin has no mod:Pedalboard type'.format(bundlepath))
+            raise Exception(
+                "get_pedalboard_info(%s) - plugin has no mod:Pedalboard type".format(bundlepath)
+            )
 
         # Walk ports starting from capture1 to determine general plugin order
         # TODO can this be generalized to use the chase_tail function?
@@ -137,7 +141,7 @@ class Pedalboard:
         for port in ports:
             if port is None:
                 continue
-            tail = self.world.get(None, self.uri_tail, port)   # TODO could end up being capture2
+            tail = self.world.get(None, self.uri_tail, port)  # TODO could end up being capture2
             if tail is None:
                 continue
             head = self.world.get(tail, self.uri_head, None)
@@ -160,7 +164,7 @@ class Pedalboard:
             category = None
             prototype = self.world.find_nodes(block, self.world.ns.lv2.prototype, None)
             if len(prototype) > 0:
-                #logging.debug("prototype %s" % prototype[0])
+                # logging.debug("prototype %s" % prototype[0])
                 plugin_uri = str(prototype[0])  # plugin.get_uri()
                 if plugin_uri not in plugin_dict:
                     plugin_info = self.get_plugin_data(plugin_uri)
@@ -182,13 +186,18 @@ class Pedalboard:
                 # These are the port nodes used to define parameter controls
                 for port in nodes:
                     param_value = self.world.get(port, self.uri_value, None)
-                    #logging.debug("port: %s  value: %s" % (port, param_value))
+                    # logging.debug("port: %s  value: %s" % (port, param_value))
                     binding = self.world.get(port, self.world.ns.midi.binding, None)
                     if binding is not None:
-                        controller_num = self.world.get(binding, self.world.ns.midi.controllerNumber, None)
+                        controller_num = self.world.get(
+                            binding, self.world.ns.midi.controllerNumber, None
+                        )
                         channel = self.world.get(binding, self.world.ns.midi.channel, None)
                         if (controller_num is not None) and (channel is not None):
-                            binding = "%d:%d" % (self.world.new_int(channel), self.world.new_int(controller_num))
+                            binding = "%d:%d" % (
+                                self.world.new_int(channel),
+                                self.world.new_int(controller_num),
+                            )
                             logging.debug("  MIDI CC binding %s" % binding)
                     path = str(port)
                     symbol = os.path.basename(path)
@@ -202,7 +211,11 @@ class Pedalboard:
                             value = str(value)
                     # Bypass "parameter" is a special case without an entry in the plugin definition
                     if symbol == Token.COLON_BYPASS:
-                        info = {"shortName": "bypass", "symbol": symbol, "ranges": {"minimum": 0, "maximum": 1}}  # TODO tokenize
+                        info = {
+                            "shortName": "bypass",
+                            "symbol": symbol,
+                            "ranges": {"minimum": 0, "maximum": 1},
+                        }  # TODO tokenize
                         v = False if value is 0 else True
                         param = Parameter.Parameter(info, v, binding)
                         parameters[symbol] = param
@@ -211,17 +224,19 @@ class Pedalboard:
                     try:
                         plugin_params = plugin_info[Token.PORTS][Token.CONTROL][Token.INPUT]
                     except KeyError:
-                        logging.warning("plugin port info not found, could be missing LV2 for: %s", instance_id)
+                        logging.warning(
+                            "plugin port info not found, could be missing LV2 for: %s", instance_id
+                        )
                         continue
                     for pp in plugin_params:
                         sym = util.DICT_GET(pp, Token.SYMBOL)
                         if sym == symbol:
-                            #logging.debug("PARAM: %s %s %s" % (util.DICT_GET(pp, 'name'), info[uri], category))
+                            # logging.debug("PARAM: %s %s %s" % (util.DICT_GET(pp, 'name'), info[uri], category))
                             param = Parameter.Parameter(pp, value, binding)
-                            #logging.debug("Param: %s %s %4.2f %4.2f %s" % (param.name, param.symbol, param.minimum, value, binding))
+                            # logging.debug("Param: %s %s %4.2f %4.2f %s" % (param.name, param.symbol, param.minimum, value, binding))
                             parameters[symbol] = param
 
-                    #logging.debug("  Label: %s" % label)
+                    # logging.debug("  Label: %s" % label)
             inst = Plugin.Plugin(instance_id, parameters, plugin_info, category)
 
             try:
@@ -229,7 +244,7 @@ class Pedalboard:
                 plugins_unordered[index] = inst
             except:
                 plugins_extra.append(inst)
-            #logging.debug("dump: %s" % inst.to_json())
+            # logging.debug("dump: %s" % inst.to_json())
 
         # Add "extra" plugins (those not part of the tail_chase order) to the plugins_unordered dict
         max_index = len(plugins_unordered)

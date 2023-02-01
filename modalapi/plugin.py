@@ -18,17 +18,16 @@ from pistomp.footswitch import Footswitch
 
 
 class Plugin:
-
     def __init__(self, instance_id, parameters, info, category=None):
 
         self.instance_id = instance_id
         self.parameters = parameters
-        self.bypass_indicator_xy = ((0,0), (0,0))
+        self.bypass_indicator_xy = ((0, 0), (0, 0))
         self.lcd_xyz = None
         self.controllers = []
         self.has_footswitch = False
         self.category = category
-        #self.info_dict = info   # TODO could store this but not sure we need to
+        # self.info_dict = info   # TODO could store this but not sure we need to
 
     def is_bypassed(self):
         param = self.parameters.get(":bypass")  # TODO tokenize
@@ -54,5 +53,3 @@ class Plugin:
 
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
-
-

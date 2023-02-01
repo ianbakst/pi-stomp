@@ -22,7 +22,6 @@ import time
 
 
 class Relay:
-
     def __init__(self, set_pin, reset_pin):
         self.enabled = False
         self.set_pin = set_pin
@@ -65,4 +64,3 @@ class Relay:
         f = Path(self.sentinel_file)
         f.touch()
         shutil.chown(f, user="pistomp", group=None)
-

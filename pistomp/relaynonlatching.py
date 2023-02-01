@@ -20,7 +20,6 @@ import pistomp.relay as relay
 
 
 class Relay(relay.Relay):
-
     def __init__(self, set_pin, reset_pin):
         self.enabled = False
         self.set_pin = set_pin

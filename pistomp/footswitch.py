@@ -19,8 +19,8 @@ from rtmidi.midiconstants import CONTROL_CHANGE
 
 import pistomp.gpioswitch as gpioswitch
 
-class Footswitch(gpioswitch.GpioSwitch):
 
+class Footswitch(gpioswitch.GpioSwitch):
     def __init__(self, id, fs_pin, led_pin, midi_CC, midi_channel, midiout, refresh_callback):
         super(Footswitch, self).__init__(fs_pin, midi_channel, midi_CC)
         self.id = id
@@ -34,6 +34,7 @@ class Footswitch(gpioswitch.GpioSwitch):
         self.preset_callback = None
         self.preset_callback_arg = None
         self.lcd_color = None
+        self.relay_action_short = False
 
         if led_pin is not None:
             GPIO.setup(led_pin, GPIO.OUT)
@@ -48,7 +49,7 @@ class Footswitch(gpioswitch.GpioSwitch):
         self.midi_channel = midi_channel
 
     def set_value(self, value):
-        self.enabled = (value < 1)
+        self.enabled = value < 1
         self._set_led(self.enabled)
 
     def _set_led(self, enabled):
@@ -68,7 +69,7 @@ class Footswitch(gpioswitch.GpioSwitch):
 
         # Update Relay (if relay is associated with this footswitch)
         if len(self.relay_list) > 0:
-            if short is False:
+            if short is self.relay_action_short:
                 # Pin kept low (long press)
                 # toggle the relay and LED, exit this method
                 self.enabled = new_enabled
@@ -113,8 +114,9 @@ class Footswitch(gpioswitch.GpioSwitch):
     def clear_display_label(self):
         self.display_label = None
 
-    def add_relay(self, relay):
+    def add_relay(self, relay, action: bool):
         self.relay_list.append(relay)
+        self.relay_action_short = action
         self.set_value(not relay.init_state())
 
     def clear_relays(self):

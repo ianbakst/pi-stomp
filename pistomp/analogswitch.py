@@ -23,6 +23,7 @@ from enum import Enum
 
 import pistomp.analogcontrol as analogcontrol
 
+
 class Value(Enum):
     DEFAULT = 0
     PRESSED = 1
@@ -31,13 +32,16 @@ class Value(Enum):
     CLICKED = 4
     DOUBLECLICKED = 5
 
-LONGPRESS_THRESHOLD = 60  # TODO somewhat LAME.  It's dependent on the refresh frequency of the main loop
+
+LONGPRESS_THRESHOLD = (
+    60  # TODO somewhat LAME.  It's dependent on the refresh frequency of the main loop
+)
+
 
 class AnalogSwitch(analogcontrol.AnalogControl):
-
     def __init__(self, spi, adc_channel, tolerance, callback):
         super(AnalogSwitch, self).__init__(spi, adc_channel, tolerance)
-        self.value = None          # this keeps track of the last value
+        self.value = None  # this keeps track of the last value
         self.trigger_count = 0
         self.callback = callback
         self.longpress_state = False
@@ -54,7 +58,7 @@ class AnalogSwitch(analogcontrol.AnalogControl):
 
         # how much has it changed since the last read?
         pot_adjust = abs(new_value - self.value)
-        value_changed = (pot_adjust > self.tolerance)
+        value_changed = pot_adjust > self.tolerance
 
         # Count the number of simultaneous refresh cycles had the switch Low (triggered)
         if not self.longpress_state and new_value < self.tolerance and self.value < self.tolerance:

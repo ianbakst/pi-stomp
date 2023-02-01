@@ -17,8 +17,7 @@ from PIL import Image
 
 
 class Tool:
-
-    def __init__(self, tool_type, x, y, img_path = None):
+    def __init__(self, tool_type, x, y, img_path=None):
         self.tool_type = tool_type
         self.x = x
         self.y = y
@@ -26,6 +25,3 @@ class Tool:
 
     def update_img(self, img_path):
         self.image = Image.open(img_path)
-
-
-

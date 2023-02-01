@@ -20,7 +20,6 @@ from functools import partial
 
 
 class Encoder:
-
     def _process_gpios(self):
         # This decode/debouce algorithm adapted from
         # https://www.best-microcontroller-projects.com/rotary-encoder.html
@@ -30,7 +29,7 @@ class Encoder:
             self.prevNextCode |= 0x02
         if GPIO.input(self.d_pin):
             self.prevNextCode |= 0x01
-        self.prevNextCode &= 0x0f
+        self.prevNextCode &= 0x0F
 
         direction = 0
         # Check for valid code
@@ -38,9 +37,13 @@ class Encoder:
             self.store <<= 4
             self.store |= self.prevNextCode
             # Check last two codes (end of detent transition)
-            if (self.store & 0xff) == 0x2b:  # code 2 followed by code 11 (full sequence is 13,4,2,11)
+            if (
+                self.store & 0xFF
+            ) == 0x2B:  # code 2 followed by code 11 (full sequence is 13,4,2,11)
                 direction = -1  # Counter Clockwise
-            if (self.store & 0xff) == 0x17:  # code 1 followed by code 7 (full sequence is 14,8,1,7)
+            if (
+                self.store & 0xFF
+            ) == 0x17:  # code 1 followed by code 7 (full sequence is 14,8,1,7)
                 direction = 1  # Clockwise
         if direction != 0:
             self.store = self.prevNextCode
@@ -52,7 +55,7 @@ class Encoder:
             with self._lock:
                 self.direction += d
 
-    def __init__(self, d_pin, clk_pin, callback, use_interrupt = True):
+    def __init__(self, d_pin, clk_pin, callback, use_interrupt=True):
 
         self.d_pin = d_pin
         self.clk_pin = clk_pin

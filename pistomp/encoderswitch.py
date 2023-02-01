@@ -18,6 +18,7 @@ from enum import Enum
 import pistomp.gpioswitch as gpioswitch
 import time
 
+
 class Value(Enum):
     DEFAULT = 0
     PRESSED = 1
@@ -28,10 +29,9 @@ class Value(Enum):
 
 
 class EncoderSwitch(gpioswitch.GpioSwitch):
-
     def __init__(self, gpio, callback):
         super(EncoderSwitch, self).__init__(gpio, None, None)
-        self.last_read = None          # this keeps track of the last value
+        self.last_read = None  # this keeps track of the last value
         self.trigger_count = 0
         self.callback = callback
         self.longpress_state = False

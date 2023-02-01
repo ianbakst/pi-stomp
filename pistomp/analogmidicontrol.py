@@ -27,7 +27,6 @@ import logging
 
 
 class AnalogMidiControl(analogcontrol.AnalogControl):
-
     def __init__(self, spi, adc_channel, tolerance, midi_CC, midi_channel, midiout, type, cfg={}):
         super(AnalogMidiControl, self).__init__(spi, adc_channel, tolerance)
         self.midi_CC = midi_CC
@@ -36,7 +35,7 @@ class AnalogMidiControl(analogcontrol.AnalogControl):
 
         # Parent member overrides
         self.type = type
-        self.last_read = 0          # this keeps track of the last potentiometer value
+        self.last_read = 0  # this keeps track of the last potentiometer value
         self.value = None
         self.cfg = cfg
 
@@ -53,7 +52,7 @@ class AnalogMidiControl(analogcontrol.AnalogControl):
 
         # how much has it changed since the last read?
         pot_adjust = abs(value - self.last_read)
-        value_changed = (pot_adjust > self.tolerance)
+        value_changed = pot_adjust > self.tolerance
 
         if value_changed:
             # convert 16bit adc0 (0-65535) trim pot read into 0-100 volume level

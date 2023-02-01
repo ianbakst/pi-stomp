@@ -27,7 +27,7 @@ class Audiocardfactory:
             raise Audiocardfactory.__single
         Audiocardfactory.__single = self
         self.cwd = cwd
-        self.system_card_file="/proc/asound/cards"
+        self.system_card_file = "/proc/asound/cards"
 
     def get_current_card(self):
         result = None
@@ -38,8 +38,8 @@ class Audiocardfactory:
             line = f.readline()
             while line:
                 strs = line.split()
-                if len(strs) > 2 and strs[0] == '0':
-                    result = strs[1].lstrip('[').rstrip(']:')
+                if len(strs) > 2 and strs[0] == "0":
+                    result = strs[1].lstrip("[").rstrip("]:")
                     break
                 line = f.readline()
         f.close()

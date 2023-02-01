@@ -26,7 +26,6 @@ from abc import abstractmethod
 
 
 class Hardware:
-
     def __init__(self, default_config, mod, midiout, refresh_callback):
         logging.info("Init hardware: " + type(self).__name__)
         self.mod = mod
@@ -39,7 +38,7 @@ class Hardware:
         # From config file(s)
         self.default_cfg = default_config
         self.version = self.default_cfg[Token.HARDWARE][Token.VERSION]
-        self.cfg = None          # compound cfg (default with user/pedalboard specific cfg overlaid)
+        self.cfg = None  # compound cfg (default with user/pedalboard specific cfg overlaid)
         self.midi_channel = 0
 
         # Standard hardware objects (not required to exist)
@@ -58,8 +57,8 @@ class Hardware:
         # MCP3008 ADC has a max of 1MHz (higher makes it loose resolution)
         # Color LCD needs to run at 24Mhz
         # until we can get them on the same, we'll set ADC (the one set here) to be a slower multiple of the LCD
-        #self.spi.max_speed_hz = 24000000
-        #self.spi.max_speed_hz =  1000000
+        # self.spi.max_speed_hz = 24000000
+        # self.spi.max_speed_hz =  1000000
         self.spi.max_speed_hz = 240000
 
     def poll_controls(self):
@@ -113,7 +112,11 @@ class Hardware:
             self.test()
 
     def create_footswitches(self, cfg):
-        if cfg is None or (Token.HARDWARE not in cfg) or (Token.FOOTSWITCHES not in cfg[Token.HARDWARE]):
+        if (
+            cfg is None
+            or (Token.HARDWARE not in cfg)
+            or (Token.FOOTSWITCHES not in cfg[Token.HARDWARE])
+        ):
             return
 
         cfg_fs = cfg[Token.HARDWARE][Token.FOOTSWITCHES]
@@ -121,8 +124,7 @@ class Hardware:
             return
 
         midi_channel = self.__get_real_midi_channel(cfg)
-        idx = 0
-        for f in cfg_fs:
+        for idx, f in enumerate(cfg_fs):
             if Util.DICT_GET(f, Token.DISABLE) is True:
                 continue
 
@@ -137,16 +139,28 @@ class Hardware:
             id = Util.DICT_GET(f, Token.ID)
 
             if gpio_input is None:
-                logging.error("Switch specified without %s or %s" % (Token.DEBOUNCE_INPUT, Token.GPIO_INPUT))
+                logging.error(
+                    "Switch specified without %s or %s" % (Token.DEBOUNCE_INPUT, Token.GPIO_INPUT)
+                )
                 continue
 
-            fs = Footswitch.Footswitch(id if id else idx, gpio_input, gpio_output, midi_cc, midi_channel,
-                                       self.midiout, refresh_callback=self.refresh_callback)
+            fs = Footswitch.Footswitch(
+                id if id else idx,
+                gpio_input,
+                gpio_output,
+                midi_cc,
+                midi_channel,
+                self.midiout,
+                refresh_callback=self.refresh_callback,
+            )
             self.footswitches.append(fs)
-            idx += 1
 
     def create_analog_controls(self, cfg):
-        if cfg is None or (Token.HARDWARE not in cfg) or (Token.ANALOG_CONTROLLERS not in cfg[Token.HARDWARE]):
+        if (
+            cfg is None
+            or (Token.HARDWARE not in cfg)
+            or (Token.ANALOG_CONTROLLERS not in cfg[Token.HARDWARE])
+        ):
             return
 
         midi_channel = self.__get_real_midi_channel(cfg)
@@ -171,8 +185,16 @@ class Hardware:
             if threshold is None:
                 threshold = 16  # Default, 1024 is full scale
 
-            control = AnalogMidiControl.AnalogMidiControl(self.spi, adc_input, threshold, midi_cc, midi_channel,
-                                                          self.midiout, control_type, c)
+            control = AnalogMidiControl.AnalogMidiControl(
+                self.spi,
+                adc_input,
+                threshold,
+                midi_cc,
+                midi_channel,
+                self.midiout,
+                control_type,
+                c,
+            )
             self.analog_controls.append(control)
             key = format("%d:%d" % (midi_channel, midi_cc))
             self.controllers[key] = control
@@ -203,11 +225,14 @@ class Hardware:
         self.__init_footswitches(self.cfg)
 
     def __init_footswitches(self, cfg):
-        if cfg is None or (Token.HARDWARE not in cfg) or (Token.FOOTSWITCHES not in cfg[Token.HARDWARE]):
+        if (
+            cfg is None
+            or (Token.HARDWARE not in cfg)
+            or (Token.FOOTSWITCHES not in cfg[Token.HARDWARE])
+        ):
             return
         cfg_fs = cfg[Token.HARDWARE][Token.FOOTSWITCHES]
-        idx = 0
-        for fs in self.footswitches:
+        for idx, fs in enumerate(self.footswitches):
             # See if a corresponding cfg entry exists.  if so, override
             f = None
             for f in cfg_fs:
@@ -218,46 +243,38 @@ class Hardware:
 
             if f is not None:
                 fs.clear_display_label()
-
-                # Bypass
                 fs.clear_relays()
-                if Token.BYPASS in f:
-                    # TODO no more right or left
-                    if f[Token.BYPASS] in [Token.SHORT, Token.LONG]:
-                        fs.add_relay(f[Token.BYPASS])
-                        fs.set_display_label("byps")
-
-                # Midi
-                if Token.MIDI_CC in f:
-                    cc = f[Token.MIDI_CC]
-                    if cc == Token.NONE:
-                        fs.set_midi_CC(None)
-                        for k, v in self.controllers.items():
-                            if v == fs:
-                                self.controllers.pop(k)
-                                break
-                    else:
-                        fs.set_midi_channel(self.midi_channel)
-                        fs.set_midi_CC(cc)
-                        key = format("%d:%d" % (self.midi_channel, fs.midi_CC))
-                        self.controllers[key] = fs   # TODO problem if this creates a new element?
-
-                # Preset Control
                 fs.clear_preset()
-                if Token.PRESET in f:
-                    preset_value = f[Token.PRESET]
-                    if preset_value == Token.UP:
-                        fs.add_preset(callback=self.mod.preset_incr_and_change)
-                        fs.set_display_label("Pre+")
-                    elif preset_value == Token.DOWN:
-                        fs.add_preset(callback=self.mod.preset_decr_and_change)
-                        fs.set_display_label("Pre-")
-                    elif isinstance(preset_value, int):
-                        fs.add_preset(callback=self.mod.preset_set_and_change, callback_arg=preset_value)
-                        fs.set_display_label(str(preset_value))
-
+                for action in (a for a in [Token.SHORT, Token.LONG] if a in f):
+                    if f[action] == Token.BYPASS:
+                        fs.add_relay(self.relay, action == Token.SHORT)
+                        fs.set_display_label("byps")
+                    if f[action] == Token.PRESET:
+                        preset_value = f.get(f"{action}-{Token.PRESET}")
+                        if preset_value == Token.UP:
+                            fs.add_preset(callback=self.mod.preset_incr_and_change)
+                            fs.set_display_label("Pre+")
+                        elif preset_value == Token.DOWN:
+                            fs.add_preset(callback=self.mod.preset_decr_and_change)
+                            fs.set_display_label("Pre-")
+                        elif isinstance(preset_value, int):
+                            fs.add_preset(
+                                callback=self.mod.preset_set_and_change, callback_arg=preset_value
+                            )
+                            fs.set_display_label(str(preset_value))
+                    if Token.MIDI_CC in f:
+                        cc = f[Token.MIDI_CC]
+                        if cc == Token.NONE:
+                            fs.set_midi_CC(None)
+                            for k, v in self.controllers.items():
+                                if v == fs:
+                                    self.controllers.pop(k)
+                                    break
+                        else:
+                            fs.set_midi_channel(self.midi_channel)
+                            fs.set_midi_CC(cc)
+                            key = format("%d:%d" % (self.midi_channel, fs.midi_CC))
+                            self.controllers[key] = fs  # TODO problem if this creates a new element?
                 # LCD attributes
                 if Token.COLOR in f:
                     fs.set_lcd_color(f[Token.COLOR])
-
-            idx += 1

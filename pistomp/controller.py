@@ -19,7 +19,6 @@ import logging
 
 
 class Controller:
-
     def __init__(self, midi_channel, midi_CC):
         self.midi_channel = midi_channel
         self.midi_CC = midi_CC
@@ -34,5 +33,3 @@ class Controller:
 
     def set_value(self, value):
         logging.error("Controller subclass hasn't overriden the set_value method")
-
-

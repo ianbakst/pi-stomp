@@ -15,8 +15,8 @@
 
 from pistomp.handler import Handler
 
-class Generichost(Handler):
 
+class Generichost(Handler):
     def __init__(self, homedir=None):
         self.homedir = homedir
         self.hardware = None

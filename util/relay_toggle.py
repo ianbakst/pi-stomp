@@ -14,13 +14,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
-
-import sys, os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+import os
+import sys
 
 import RPi.GPIO as GPIO
 import pistomp.relay as Relay
 
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 # Warning these pin assignments must match pistomp/pistomp.py
 RELAY_RESET_PIN = 16
@@ -30,7 +31,7 @@ RELAY_SET_PIN = 12
 def main():
     mode_previously_unset = False
     if GPIO.getmode() is None:
-        print ("set GPIO mode")
+        print("set GPIO mode")
         mode_previously_unset = True
         GPIO.setmode(GPIO.BCM)
 
@@ -44,8 +45,9 @@ def main():
         relay.enable()
 
     if mode_previously_unset is True:
-        print ("cleanup GPIO")
+        print("cleanup GPIO")
         GPIO.cleanup()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

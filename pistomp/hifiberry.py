@@ -18,10 +18,9 @@ import pistomp.audiocard as audiocard
 
 
 class Hifiberry(audiocard.Audiocard):
-
     def __init__(self, cwd):
         super(Hifiberry, self).__init__(cwd)
-        self.initial_config_file = os.path.join(cwd, 'setup', 'audio', 'hifiberry.state')
-        self.initial_config_name = 'sndrpihifiberry'
-        self.CAPTURE_VOLUME = 'Digital'
+        self.initial_config_file = os.path.join(cwd, "setup", "audio", "hifiberry.state")
+        self.initial_config_name = "sndrpihifiberry"
+        self.CAPTURE_VOLUME = "Digital"
         self.MASTER = None

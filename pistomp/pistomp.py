@@ -63,7 +63,8 @@ FOOTSW = [(0, 23, 24, 61), (1, 25, 0, 62), (2, 13, 26, 63)]
 # 3: the MIDI Control (CC) message that will be sent
 # 4: control type (KNOB, EXPRESSION, etc.)
 # Tweak, Expression Pedal
-ANALOG_CONTROL = [(0, 16, 64, 'KNOB'), (1, 16, 65, 'EXPRESSION')]
+ANALOG_CONTROL = [(0, 16, 64, "KNOB"), (1, 16, 65, "EXPRESSION")]
+
 
 class Pistomp(hardware.Hardware):
     __single = None
@@ -98,28 +99,44 @@ class Pistomp(hardware.Hardware):
 
     def init_analog_controls(self):
         for c in ANALOG_CONTROL:
-            control = AnalogMidiControl.AnalogMidiControl(self.spi, c[0], c[1], c[2], self.midi_channel,
-                                                          self.midiout, c[3])
+            control = AnalogMidiControl.AnalogMidiControl(
+                self.spi, c[0], c[1], c[2], self.midi_channel, self.midiout, c[3]
+            )
             self.analog_controls.append(control)
             key = format("%d:%d" % (self.midi_channel, c[2]))
-            self.controllers[key] = control  # Controller.Controller(self.midi_channel, c[1], Controller.Type.ANALOG)
+            self.controllers[
+                key
+            ] = control  # Controller.Controller(self.midi_channel, c[1], Controller.Type.ANALOG)
 
     def init_encoders(self):
-        top_enc = Encoder.Encoder(TOP_ENC_PIN_D, TOP_ENC_PIN_CLK, callback=self.mod.top_encoder_select)
+        top_enc = Encoder.Encoder(
+            TOP_ENC_PIN_D, TOP_ENC_PIN_CLK, callback=self.mod.top_encoder_select
+        )
         self.encoders.append(top_enc)
-        bot_enc = Encoder.Encoder(BOT_ENC_PIN_D, BOT_ENC_PIN_CLK, callback=self.mod.bot_encoder_select)
+        bot_enc = Encoder.Encoder(
+            BOT_ENC_PIN_D, BOT_ENC_PIN_CLK, callback=self.mod.bot_encoder_select
+        )
         self.encoders.append(bot_enc)
-        control = AnalogSwitch.AnalogSwitch(self.spi, TOP_ENC_SWITCH_CHANNEL, ENC_SW_THRESHOLD,
-                                            callback=self.mod.top_encoder_sw)
+        control = AnalogSwitch.AnalogSwitch(
+            self.spi, TOP_ENC_SWITCH_CHANNEL, ENC_SW_THRESHOLD, callback=self.mod.top_encoder_sw
+        )
         self.analog_controls.append(control)
-        control = AnalogSwitch.AnalogSwitch(self.spi, BOT_ENC_SWITCH_CHANNEL, ENC_SW_THRESHOLD,
-                                            callback=self.mod.bottom_encoder_sw)
+        control = AnalogSwitch.AnalogSwitch(
+            self.spi, BOT_ENC_SWITCH_CHANNEL, ENC_SW_THRESHOLD, callback=self.mod.bottom_encoder_sw
+        )
         self.analog_controls.append(control)
 
     def init_footswitches(self):
         for f in FOOTSW:
-            fs = Footswitch.Footswitch(f[0], f[1], f[2], f[3], self.midi_channel, self.midiout,
-                                       refresh_callback=self.refresh_callback)
+            fs = Footswitch.Footswitch(
+                f[0],
+                f[1],
+                f[2],
+                f[3],
+                self.midi_channel,
+                self.midiout,
+                refresh_callback=self.refresh_callback,
+            )
             self.footswitches.append(fs)
         self.reinit(None)
 
@@ -141,8 +158,15 @@ class Pistomp(hardware.Hardware):
             # Footswitches
             for f in FOOTSW:
                 self.mod.lcd.draw_info_message("Press Footswitch %d" % int(f[0] + 1))
-                fs = Footswitch.Footswitch(f[0], f[1], f[2], f[3], self.midi_channel, self.midiout,
-                                           refresh_callback=self.test_passed)
+                fs = Footswitch.Footswitch(
+                    f[0],
+                    f[1],
+                    f[2],
+                    f[3],
+                    self.midi_channel,
+                    self.midiout,
+                    refresh_callback=self.test_passed,
+                )
                 self.test_pass = False
                 timeout = 1000  # 10 seconds
                 initial_value = GPIO.input(f[2])
@@ -162,8 +186,10 @@ class Pistomp(hardware.Hardware):
                 time.sleep(1.2)
 
             # Encoder rotary
-            encoders = [["Turn the PBoard Knob", TOP_ENC_PIN_D, TOP_ENC_PIN_CLK],
-                        ["Turn the Effect Knob", BOT_ENC_PIN_D, BOT_ENC_PIN_CLK]]
+            encoders = [
+                ["Turn the PBoard Knob", TOP_ENC_PIN_D, TOP_ENC_PIN_CLK],
+                ["Turn the Effect Knob", BOT_ENC_PIN_D, BOT_ENC_PIN_CLK],
+            ]
             for e in encoders:
                 enc = Encoder.Encoder(e[1], e[2], callback=self.test_passed)
                 self.mod.lcd.draw_info_message(e[0])
@@ -182,10 +208,14 @@ class Pistomp(hardware.Hardware):
                 time.sleep(1.2)
 
             # Encoder switches
-            encoders = [["Press the PBoard Knob", TOP_ENC_SWITCH_CHANNEL],
-                        ["Press the Effect Knob", BOT_ENC_SWITCH_CHANNEL]]
+            encoders = [
+                ["Press the PBoard Knob", TOP_ENC_SWITCH_CHANNEL],
+                ["Press the Effect Knob", BOT_ENC_SWITCH_CHANNEL],
+            ]
             for e in encoders:
-                enc = AnalogSwitch.AnalogSwitch(self.spi, e[1], ENC_SW_THRESHOLD, callback=self.test_passed)
+                enc = AnalogSwitch.AnalogSwitch(
+                    self.spi, e[1], ENC_SW_THRESHOLD, callback=self.test_passed
+                )
                 self.mod.lcd.draw_info_message(e[0])
                 self.test_pass = False
                 timeout = 1000
@@ -204,8 +234,9 @@ class Pistomp(hardware.Hardware):
             # Analog Knobs
             self.mod.lcd.draw_info_message("Turn the Tweak knob")
             c = ANALOG_CONTROL[0]
-            control = AnalogMidiControl.AnalogMidiControl(self.spi, c[0], c[1], c[2], self.midi_channel,
-                                                          self.midiout, c[3])
+            control = AnalogMidiControl.AnalogMidiControl(
+                self.spi, c[0], c[1], c[2], self.midi_channel, self.midiout, c[3]
+            )
             self.test_pass = False
             timeout = 1000
             initial_value = control.readChannel()
@@ -241,5 +272,5 @@ class Pistomp(hardware.Hardware):
             GPIO.cleanup()
             sys.exit()
 
-    def test_passed(self, data = None):
+    def test_passed(self, data=None):
         self.test_pass = True

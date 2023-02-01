@@ -3,8 +3,8 @@
 # a file, named config.yml to the pedalboard directory (ie. ~/data/.pedalboards/<pedalboard-name>)
 
 ---
+# Hardware version (1.0 for original pi-Stomp, 2.0 for pi-Stomp Core)
 hardware:
-  # Hardware version (1.0 for original pi-Stomp, 2.0 for pi-Stomp Core)
   version: 2.0
 
   # midi definition
@@ -26,8 +26,9 @@ hardware:
   - id: 0
     debounce_input: 0
     gpio_output: 0
-    bypass: SHORT
-    preset: UP
+    short: BYPASS
+    long: preset
+    long-preset: UP
   - id: 1
     debounce_input: 1
     gpio_output: 13
@@ -38,6 +39,14 @@ hardware:
     gpio_output: 26
     midi_CC: 63
     color: blue
+
+# Model Behavior
+#  - debounce_input: 0
+#    gpio_output: 0
+#    short_action: BYPASS
+#    long_action: TUNER
+#    preset: UP
+#    color: white
 
   # analog control definition
   #   adc_input: adc chip pin to which control is connected

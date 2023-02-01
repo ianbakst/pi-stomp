@@ -15,7 +15,6 @@
 
 
 class Handler:
-
     def __init__(self):
         self.homedir = None
         self.lcd = None

@@ -20,24 +20,24 @@ import pistomp.tool as Tool
 import common.token as Token
 import common.util as util
 
-class Lcdcolor(lcdbase.Lcdbase):
 
+class Lcdcolor(lcdbase.Lcdbase):
     def __init__(self, cwd):
         super(Lcdcolor, self).__init__(cwd)
 
         self.category_color_map = {
-            'Delay': "MediumVioletRed",
-            'Distortion': "Lime",
-            'Dynamics': "OrangeRed",
-            'Filter': (205, 133, 40),
-            'Generator': "Indigo",
-            'Midiutility': "Gray",
-            'Modulator': (50, 50, 255),
-            'Reverb': (20, 160, 255),
-            'Simulator': "SaddleBrown",
-            'Spacial': "Gray",
-            'Spectral': "Red",
-            'Utility': "Gray"
+            "Delay": "MediumVioletRed",
+            "Distortion": "Lime",
+            "Dynamics": "OrangeRed",
+            "Filter": (205, 133, 40),
+            "Generator": "Indigo",
+            "Midiutility": "Gray",
+            "Modulator": (50, 50, 255),
+            "Reverb": (20, 160, 255),
+            "Simulator": "SaddleBrown",
+            "Spacial": "Gray",
+            "Spectral": "Red",
+            "Utility": "Gray",
         }
 
     # Menu Screens (uses deep_edit image and draw objects)
@@ -64,7 +64,9 @@ class Lcdcolor(lcdbase.Lcdbase):
         xpitch = 4
 
         # The current value text
-        self.menu_draw.text((0, ytext), "%s" % util.format_float(value), self.foreground, self.title_font)
+        self.menu_draw.text(
+            (0, ytext), "%s" % util.format_float(value), self.foreground, self.title_font
+        )
 
         val = util.renormalize(value, parameter.minimum, parameter.maximum, 0, self.graph_width)
         yref = y1
@@ -76,18 +78,24 @@ class Lcdcolor(lcdbase.Lcdbase):
             x = x + xpitch
             yref = yref - 1
 
-        self.menu_draw.text((0, self.menu_y0 + 4), "%d" % parameter.minimum, self.foreground, self.small_font)
-        self.menu_draw.text((self.graph_width - (len(str(parameter.maximum)) * 4), self.menu_y0 + 4),
-                            "%d" % parameter.maximum, self.foreground, self.small_font)
+        self.menu_draw.text(
+            (0, self.menu_y0 + 4), "%d" % parameter.minimum, self.foreground, self.small_font
+        )
+        self.menu_draw.text(
+            (self.graph_width - (len(str(parameter.maximum)) * 4), self.menu_y0 + 4),
+            "%d" % parameter.maximum,
+            self.foreground,
+            self.small_font,
+        )
         self.refresh_menu()
         self.draw_info_message("Click to exit")
 
     def update_wifi(self, wifi_status):
         if not self.supports_toolbar:
             return
-        if util.DICT_GET(wifi_status, 'hotspot_active'):
+        if util.DICT_GET(wifi_status, "hotspot_active"):
             img = "wifi_orange.png"
-        elif util.DICT_GET(wifi_status, 'wifi_connected'):
+        elif util.DICT_GET(wifi_status, "wifi_connected"):
             img = "wifi_silver.png"
         else:
             img = "wifi_gray.png"
@@ -110,16 +118,30 @@ class Lcdcolor(lcdbase.Lcdbase):
 
     def clear_select(self):
         if self.selected_box:
-            self.draw_box_outline(self.selected_box[0], self.selected_box[1], self.ZONE_TOOLS,
-                                  color=self.background, width=self.selected_box[2])
+            self.draw_box_outline(
+                self.selected_box[0],
+                self.selected_box[1],
+                self.ZONE_TOOLS,
+                color=self.background,
+                width=self.selected_box[2],
+            )
             self.refresh_zone(self.ZONE_TOOLS)
             self.selected_box = None
 
     def draw_title(self, pedalboard, preset, invert_pb, invert_pre, highlight_only=False):
         zone = self.ZONE_TITLE
-        self.erase_zone(zone)  # TODO to avoid redraw of entire zone, could we just redraw what changed?
-        self.base_draw_title(self.draw[zone], self.title_font, pedalboard, preset, invert_pb, invert_pre,
-                             highlight_only)
+        self.erase_zone(
+            zone
+        )  # TODO to avoid redraw of entire zone, could we just redraw what changed?
+        self.base_draw_title(
+            self.draw[zone],
+            self.title_font,
+            pedalboard,
+            preset,
+            invert_pb,
+            invert_pre,
+            highlight_only,
+        )
         self.refresh_zone(zone)
 
     # Zone 1 - Analog Assignments (Tweak, Expression Pedal, etc.)
@@ -180,8 +202,12 @@ class Lcdcolor(lcdbase.Lcdbase):
             y0 = self.selected_plugin.lcd_xyz[0][1] - 3
             x1 = self.selected_plugin.lcd_xyz[1][0] + 3
             y1 = self.selected_plugin.lcd_xyz[1][1] + 3
-            c = self.background # if self.selected_plugin.has_footswitch else self.get_plugin_color(self.selected_plugin)
-            self.draw_box_outline((x0, y0), (x1, y1), self.selected_plugin.lcd_xyz[2], color=c, width=width)
+            c = (
+                self.background
+            )  # if self.selected_plugin.has_footswitch else self.get_plugin_color(self.selected_plugin)
+            self.draw_box_outline(
+                (x0, y0), (x1, y1), self.selected_plugin.lcd_xyz[2], color=c, width=width
+            )
             self.refresh_zone(self.selected_plugin.lcd_xyz[2])
 
         if plugin is not None:
@@ -190,13 +216,17 @@ class Lcdcolor(lcdbase.Lcdbase):
             y0 = plugin.lcd_xyz[0][1] - 3
             x1 = plugin.lcd_xyz[1][0] + 3
             y1 = plugin.lcd_xyz[1][1] + 3
-            self.draw_box_outline((x0, y0), (x1, y1), plugin.lcd_xyz[2], color=self.highlight, width=width)
+            self.draw_box_outline(
+                (x0, y0), (x1, y1), plugin.lcd_xyz[2], color=self.highlight, width=width
+            )
             self.refresh_zone(plugin.lcd_xyz[2])
             self.selected_plugin = plugin
 
     def draw_bound_plugins(self, plugins, footswitches):
         zone = self.ZONE_FOOTSWITCHES
-        self.erase_zone(zone)   # necessary when changing pedalboards with different switch assignments
+        self.erase_zone(
+            zone
+        )  # necessary when changing pedalboards with different switch assignments
         self.base_draw_bound_plugins(zone, plugins, footswitches)
         self.refresh_zone(zone)
 
@@ -225,7 +255,7 @@ class Lcdcolor(lcdbase.Lcdbase):
         for p in plugins:
             if p.has_footswitch:
                 continue
-            label = p.instance_id.replace('/', "")[:self.plugin_label_length]
+            label = p.instance_id.replace("/", "")[: self.plugin_label_length]
             label = label.replace("_", "")
             count += 1
             if count > 4:
@@ -254,10 +284,22 @@ class Lcdcolor(lcdbase.Lcdbase):
         if is_footswitch:
             if plugin:
                 plugin.lcd_xyz = (xy1, xy2, zone)
-            c = self.color_plugin_bypassed if plugin is not None and plugin.is_bypassed() else color
+            c = (
+                self.color_plugin_bypassed
+                if plugin is not None and plugin.is_bypassed()
+                else color
+            )
             self.draw_footswitch(xy1, xy2, zone, text, c)
         elif plugin:
             plugin.lcd_xyz = (xy1, xy2, zone)
-            self.draw_box(xy1, xy2, zone, text, is_footswitch, not plugin.is_bypassed(), self.get_plugin_color(plugin))
+            self.draw_box(
+                xy1,
+                xy2,
+                zone,
+                text,
+                is_footswitch,
+                not plugin.is_bypassed(),
+                self.get_plugin_color(plugin),
+            )
 
         return x2

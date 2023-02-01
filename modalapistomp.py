@@ -30,21 +30,38 @@ import pistomp.testhost as Testhost
 import pistomp.hardwarefactory as Hardwarefactory
 import pistomp.handler as Handler
 
+
 def main():
     sys.settrace
 
     # Command line parsing
     parser = argparse.ArgumentParser()
-    parser.add_argument("--log", "-l", nargs='+', help="Provide logging level. Example --log debug'", default="info",
-                        choices=['debug', 'info', 'warning', 'error', 'critical'])
-    parser.add_argument("--host", nargs='+', help="Plugin host to use. Example --host mod'", default=['mod'],
-                        choices=['mod', 'generic', 'test'])
+    parser.add_argument(
+        "--log",
+        "-l",
+        nargs="+",
+        help="Provide logging level. Example --log debug'",
+        default="info",
+        choices=["debug", "info", "warning", "error", "critical"],
+    )
+    parser.add_argument(
+        "--host",
+        nargs="+",
+        help="Plugin host to use. Example --host mod'",
+        default=["mod"],
+        choices=["mod", "generic", "test"],
+    )
 
     args = parser.parse_args()
 
     # Handle Log Level
-    level_config = {'debug': logging.DEBUG, 'info': logging.INFO, 'warning': logging.WARNING, 'error': logging.ERROR,
-                    'critical': logging.CRITICAL}
+    level_config = {
+        "debug": logging.DEBUG,
+        "info": logging.INFO,
+        "warning": logging.WARNING,
+        "error": logging.ERROR,
+        "critical": logging.CRITICAL,
+    }
     log = args.log[0]
     log_level = level_config[log] if log in level_config else None
     if log_level:
@@ -57,7 +74,7 @@ def main():
     # Audio Card Config - doing this early so audio passes ASAP
     factory = Audiocardfactory.Audiocardfactory(cwd)
     audiocard = factory.create()
-    audiocard.restore() 
+    audiocard.restore()
 
     # MIDI initialization
     # Prompts user for MIDI input port, unless a valid port number or name
@@ -65,8 +82,8 @@ def main():
     # API backend defaults to ALSA on Linux.
     # TODO discover and use the thru port (seems to be 14:0 on my system)
     # shouldn't need to aconnect, just send msgs directly to the thru port
-    port = 0 # TODO get this (the Midi Through port) programmatically
-    #port = sys.argv[1] if len(sys.argv) > 1 else None
+    port = 0  # TODO get this (the Midi Through port) programmatically
+    # port = sys.argv[1] if len(sys.argv) > 1 else None
     try:
         midiout, port_name = open_midioutput(port)
     except (EOFError, KeyboardInterrupt):
@@ -76,7 +93,7 @@ def main():
     hw = None
     handler = None
 
-    if args.host[0] == 'mod':
+    if args.host[0] == "mod":
 
         # Create singleton Mod handler
         handler = Mod.Mod(audiocard, cwd)
@@ -100,7 +117,7 @@ def main():
         # Load system info.  This can take a few seconds
         handler.system_info_load()
 
-    elif args.host[0] == 'generic':
+    elif args.host[0] == "generic":
         # No specific plugin host specified, so use a generic handler
         # Encoders and LCD not mapped without specific purpose
         # Just initialize the control hardware (footswitches, analog controls, etc.) for use as MIDI controls
@@ -109,7 +126,7 @@ def main():
         hw = factory.create(handler, midiout)
         handler.add_hardware(hw)
 
-    elif args.host[0] == 'test':
+    elif args.host[0] == "test":
         handler = Testhost.Testhost(audiocard, homedir=cwd)
         try:
             factory = Hardwarefactory.Hardwarefactory()
@@ -124,7 +141,9 @@ def main():
     try:
         while True:
             handler.poll_controls()
-            time.sleep(0.01)  # lower to increase responsiveness, but can cause conflict with LCD if too low
+            time.sleep(
+                0.01
+            )  # lower to increase responsiveness, but can cause conflict with LCD if too low
 
             # For less frequent events
             period += 1
@@ -133,7 +152,7 @@ def main():
                 period = 0
 
     except KeyboardInterrupt:
-        logging.info('keyboard interrupt')
+        logging.info("keyboard interrupt")
     finally:
         handler.cleanup()
         logging.info("Exit.")
@@ -145,5 +164,5 @@ def main():
         logging.info("Completed cleanup")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

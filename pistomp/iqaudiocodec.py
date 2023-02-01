@@ -18,10 +18,9 @@ import pistomp.audiocard as audiocard
 
 
 class IQaudioCodec(audiocard.Audiocard):
-
     def __init__(self, cwd):
         super(IQaudioCodec, self).__init__(cwd)
-        self.initial_config_file = os.path.join(cwd, 'setup', 'audio', 'iqaudiocodec.state')
-        self.initial_config_name = 'IQaudIOCODEC'
-        self.CAPTURE_VOLUME = 'Aux'
-        self.MASTER = 'Lineout'  # This is the Speaker output volume
+        self.initial_config_file = os.path.join(cwd, "setup", "audio", "iqaudiocodec.state")
+        self.initial_config_name = "IQaudIOCODEC"
+        self.CAPTURE_VOLUME = "Aux"
+        self.MASTER = "Lineout"  # This is the Speaker output volume

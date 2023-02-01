@@ -23,7 +23,6 @@ import adafruit_rgb_display.st7789 as st7789
 
 
 class Lcd(ABC):
-
     def __init__(self, cwd):
         # Configuration for CS and DC pins (these are FeatherWing defaults on M0/M4):
         cs_pin = digitalio.DigitalInOut(board.CE0)
@@ -63,13 +62,17 @@ class Lcd(ABC):
         self.draw = ImageDraw.Draw(self.image)
 
         # Draw a black filled box to clear the image.
-        #self.draw.rectangle((0, 0, self.height, self.width), outline=0, fill=0)
+        # self.draw.rectangle((0, 0, self.height, self.width), outline=0, fill=0)
 
         # Font
         self.font_size = 30
-        self.font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', self.font_size)
+        self.font = ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", self.font_size
+        )
         self.splash_font_size = 40
-        self.splash_font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', self.splash_font_size)
+        self.splash_font = ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", self.splash_font_size
+        )
 
         # Splash
         self.splash_show()
@@ -79,7 +82,9 @@ class Lcd(ABC):
 
     def splash_show(self, boot=True):
         self.clear()
-        self.draw.text((0, self.top + 30), "pi Stomp!", font=self.splash_font, fill=(255, 255, 255))
+        self.draw.text(
+            (0, self.top + 30), "pi Stomp!", font=self.splash_font, fill=(255, 255, 255)
+        )
         self.refresh()
 
     def cleanup(self):
@@ -115,10 +120,11 @@ class Lcd(ABC):
         pitch = 10
         self.draw.rectangle((x, y, x + square, y + square), outline=0, fill=(200, 0, 0))
         x = x + square + pitch
-        self.draw.rectangle((x, y, x + square, y + square), outline=(0, 200, 0), fill=(255, 255, 255))
+        self.draw.rectangle(
+            (x, y, x + square, y + square), outline=(0, 200, 0), fill=(255, 255, 255)
+        )
         x = x + square + pitch
         self.draw.rectangle((x, y, x + square, y + square), outline=1, fill=(0, 0, 200))
-
 
         self.refresh()
 

@@ -22,7 +22,8 @@ import threading
 import subprocess
 import logging
 
-class WifiManager():
+
+class WifiManager:
 
     # For now hard wire wifi interface to avoid spending time scrubbing sysfs
     #
@@ -31,16 +32,20 @@ class WifiManager():
     # proper network management, but we aren't there. Alternatively, we could
     # monitor for hotplug events via dbus...
     #
-    def __init__(self, ifname = 'wlan0'):
+    def __init__(self, ifname="wlan0"):
         # Grab default wifi interface
-        self.iface_name = 'wlan0'
+        self.iface_name = "wlan0"
         self.lock = threading.Lock()
         self.last_status = {}
         self.changed = False
         self.stop = threading.Event()
         self.wireless_supported = False
-        self.wireless_file = os.path.join(os.sep, 'sys', 'class', 'net', self.iface_name, 'wireless')
-        self.operstate_file = os.path.join(os.sep, 'sys', 'class', 'net', self.iface_name, 'operstate')
+        self.wireless_file = os.path.join(
+            os.sep, "sys", "class", "net", self.iface_name, "wireless"
+        )
+        self.operstate_file = os.path.join(
+            os.sep, "sys", "class", "net", self.iface_name, "operstate"
+        )
         self.thread = threading.Thread(target=self._polling_thread, daemon=True).start()
 
     def __del__(self):
@@ -54,30 +59,36 @@ class WifiManager():
             return True
         self.wireless_supported = os.path.exists(self.wireless_file)
         return self.wireless_supported
-    
+
     def _is_wifi_connected(self):
         try:
             with open(self.operstate_file) as f:
                 line = f.readline()
                 f.close()
-                return line.startswith('up')
+                return line.startswith("up")
         except Exception as e:
             return False
 
     def _is_hotspot_active(self):
         try:
-            subprocess.check_output(['systemctl', 'is-active', 'wifi-hotspot', '--quiet']).strip().decode('utf-8')
+            subprocess.check_output(
+                ["systemctl", "is-active", "wifi-hotspot", "--quiet"]
+            ).strip().decode("utf-8")
         except:
             return False
         return True
 
     def _get_wpa_status(self, status):
         try:
-            text_out = subprocess.check_output(['wpa_cli', '-i', self.iface_name, 'status']).strip().decode('utf-8')
-            for i in text_out.split('\n'):
+            text_out = (
+                subprocess.check_output(["wpa_cli", "-i", self.iface_name, "status"])
+                .strip()
+                .decode("utf-8")
+            )
+            for i in text_out.split("\n"):
                 if len(i) is 0:
                     continue
-                (key, value) = i.split('=')
+                (key, value) = i.split("=")
                 if key and value:
                     status[key] = value
         except Exception as e:
@@ -86,9 +97,9 @@ class WifiManager():
     def _polling_thread(self):
         while not self.stop.wait(5.0):
             new_status = {}
-            new_status['wifi_supported'] = supported = self._is_wifi_supported()
-            new_status['wifi_connected'] = connected = self._is_wifi_connected()
-            new_status['hotspot_active'] = hp_active = self._is_hotspot_active()
+            new_status["wifi_supported"] = supported = self._is_wifi_supported()
+            new_status["wifi_connected"] = connected = self._is_wifi_connected()
+            new_status["hotspot_active"] = hp_active = self._is_hotspot_active()
             if supported and (connected or hp_active):
                 self._get_wpa_status(new_status)
             if new_status != self.last_status:
@@ -115,14 +126,22 @@ class WifiManager():
 
     def enable_hotspot(self):
         try:
-            subprocess.check_output(['sudo', 'systemctl', 'enable', 'wifi-hotspot']).strip().decode('utf-8')
-            subprocess.check_output(['sudo', 'systemctl', 'start', 'wifi-hotspot']).strip().decode('utf-8')
+            subprocess.check_output(
+                ["sudo", "systemctl", "enable", "wifi-hotspot"]
+            ).strip().decode("utf-8")
+            subprocess.check_output(["sudo", "systemctl", "start", "wifi-hotspot"]).strip().decode(
+                "utf-8"
+            )
         except:
-            logging.debug('Wifi hotspot enabling failed')
+            logging.debug("Wifi hotspot enabling failed")
 
     def disable_hotspot(self):
         try:
-            subprocess.check_output(['sudo', 'systemctl', 'stop', 'wifi-hotspot']).strip().decode('utf-8')
-            subprocess.check_output(['sudo', 'systemctl', 'disable', 'wifi-hotspot']).strip().decode('utf-8')
+            subprocess.check_output(["sudo", "systemctl", "stop", "wifi-hotspot"]).strip().decode(
+                "utf-8"
+            )
+            subprocess.check_output(
+                ["sudo", "systemctl", "disable", "wifi-hotspot"]
+            ).strip().decode("utf-8")
         except:
-            logging.debug('Wifi hotspot disabling failed')
+            logging.debug("Wifi hotspot disabling failed")

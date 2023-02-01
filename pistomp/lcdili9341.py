@@ -29,7 +29,6 @@ import time
 
 
 class Lcd(lcdcolor.Lcdcolor):
-
     def __init__(self, cwd):
         super(Lcd, self).__init__(cwd)
 
@@ -49,10 +48,10 @@ class Lcd(lcdcolor.Lcdcolor):
 
         # Fonts
         self.title_font = ImageFont.truetype("DejaVuSans-Bold.ttf", 26)
-        self.splash_font = ImageFont.truetype('DejaVuSans.ttf', 48)
+        self.splash_font = ImageFont.truetype("DejaVuSans.ttf", 48)
         self.small_font = ImageFont.truetype("DejaVuSans.ttf", 20)
         self.tiny_font = ImageFont.truetype("DejaVuSans.ttf", 16)
-        #self.tiny_font = ImageFont.truetype(os.path.join(cwd, "fonts", "EtBt6001-JO47.ttf"), 12)
+        # self.tiny_font = ImageFont.truetype(os.path.join(cwd, "fonts", "EtBt6001-JO47.ttf"), 12)
 
         # Colors
         self.background = (0, 0, 0)
@@ -60,7 +59,7 @@ class Lcd(lcdcolor.Lcdcolor):
         self.highlight = (255, 255, 0)
         self.color_plugin = (100, 100, 240)
         self.color_plugin_bypassed = (80, 80, 80)
-        #self.color_splash = (210, 70, 255)
+        # self.color_splash = (210, 70, 255)
         self.color_splash_up = (70, 255, 70)
         self.color_splash_down = (255, 20, 20)
 
@@ -80,25 +79,19 @@ class Lcd(lcdcolor.Lcdcolor):
         self.ZONE_FOOTSWITCHES = 6
 
         self.zones = 7
-        self.zone_height = {0: 18,
-                            1: 36,
-                            2: 26,
-                            3: 30,
-                            4: 30,
-                            5: 34,
-                            6: 66}
+        self.zone_height = {0: 18, 1: 36, 2: 26, 3: 30, 4: 30, 5: 34, 6: 66}
         self.zone_y = {}
         self.flip = True  # Flip the LCD vertically
         self.calc_zone_y()
 
         # space between footswitch icons where index is the footswitch count
         #                        0    1    2    3    4    5
-        self.footswitch_pitch = [120, 120, 120, 128, 86,  65]
+        self.footswitch_pitch = [120, 120, 120, 128, 86, 65]
 
         # Menu (System menu, Parameter edit, etc.)
         self.menu_height = self.height - self.zone_height[0] - self.zone_height[1]
         self.menu_image_height = self.menu_height * 10  # 10 pages (~80 parameters) enough?
-        self.menu_image = Image.new('RGB', (self.width, self.menu_image_height))
+        self.menu_image = Image.new("RGB", (self.width, self.menu_image_height))
         self.menu_draw = ImageDraw.Draw(self.menu_image)
         self.menu_highlight_box_height = 20
         self.menu_highlight_box = ()
@@ -116,21 +109,28 @@ class Lcd(lcdcolor.Lcdcolor):
         self.footswitch_height = 44
         self.footswitch_ring_width = 7
 
-        self.images = [Image.new('RGB', (self.width, self.zone_height[0])),  # Pedalboard / Preset Title bar
-                       Image.new('RGB', (self.width, self.zone_height[1])),  # Analog Controllers
-                       Image.new('RGB', (self.width, self.zone_height[2])),  # Plugin selection
-                       Image.new('RGB', (self.width, self.zone_height[3])),  # Plugins Row 1
-                       Image.new('RGB', (self.width, self.zone_height[4])),  # Plugin selection
-                       Image.new('RGB', (self.width, self.zone_height[5])),  # Plugins Row 2
-                       Image.new('RGB', (self.width, self.zone_height[6]))] # Plugin selection
-                       #Image.new('RGB', (self.width, self.zone_height[7]))]  # Footswitch Plugins
+        self.images = [
+            Image.new("RGB", (self.width, self.zone_height[0])),  # Pedalboard / Preset Title bar
+            Image.new("RGB", (self.width, self.zone_height[1])),  # Analog Controllers
+            Image.new("RGB", (self.width, self.zone_height[2])),  # Plugin selection
+            Image.new("RGB", (self.width, self.zone_height[3])),  # Plugins Row 1
+            Image.new("RGB", (self.width, self.zone_height[4])),  # Plugin selection
+            Image.new("RGB", (self.width, self.zone_height[5])),  # Plugins Row 2
+            Image.new("RGB", (self.width, self.zone_height[6])),
+        ]  # Plugin selection
+        # Image.new('RGB', (self.width, self.zone_height[7]))]  # Footswitch Plugins
 
-        self.draw = [ImageDraw.Draw(self.images[0]), ImageDraw.Draw(self.images[1]),
-                     ImageDraw.Draw(self.images[2]), ImageDraw.Draw(self.images[3]),
-                     ImageDraw.Draw(self.images[4]), ImageDraw.Draw(self.images[5]),
-                     ImageDraw.Draw(self.images[6])]
+        self.draw = [
+            ImageDraw.Draw(self.images[0]),
+            ImageDraw.Draw(self.images[1]),
+            ImageDraw.Draw(self.images[2]),
+            ImageDraw.Draw(self.images[3]),
+            ImageDraw.Draw(self.images[4]),
+            ImageDraw.Draw(self.images[5]),
+            ImageDraw.Draw(self.images[6]),
+        ]
 
-        self.splash_image = Image.new('RGB', (self.width, 60))
+        self.splash_image = Image.new("RGB", (self.width, 60))
         self.splash_draw = ImageDraw.Draw(self.splash_image)
 
         self.lock = False
@@ -146,20 +146,14 @@ class Lcd(lcdcolor.Lcdcolor):
         rst = self.reset_pin
         baud = self.baudrate
 
-        self.disp = ili9341.ILI9341(
-            spi,
-            cs=cs,
-            dc=dc,
-            rst=rst,
-            baudrate=baud
-        )
+        self.disp = ili9341.ILI9341(spi, cs=cs, dc=dc, rst=rst, baudrate=baud)
 
     def refresh_plugins(self):
         # TODO could be smarter here and only refresh the affected zone
         self.refresh_zone(self.ZONE_PLUGINS1)
         self.refresh_zone(self.ZONE_PLUGINS2)
         self.refresh_zone(self.ZONE_PLUGINS3)
-        #self.refresh_zone(7)
+        # self.refresh_zone(7)
 
     def wait_lock(self, period, max):
         # wait for max number of periods (in seconds)
@@ -196,16 +190,27 @@ class Lcd(lcdcolor.Lcdcolor):
                 xy = (x, y_draw)
                 xy2 = (x + self.width, y_draw + self.menu_highlight_box_height)
                 if self.menu_highlight_box:
-                    self.draw_just_a_box(self.menu_draw, self.menu_highlight_box[0], self.menu_highlight_box[1],
-                                False, self.background, highlight_width)
+                    self.draw_just_a_box(
+                        self.menu_draw,
+                        self.menu_highlight_box[0],
+                        self.menu_highlight_box[1],
+                        False,
+                        self.background,
+                        highlight_width,
+                    )
 
-                self.draw_just_a_box(self.menu_draw, xy, xy2, False, self.highlight, highlight_width)
+                self.draw_just_a_box(
+                    self.menu_draw, xy, xy2, False, self.highlight, highlight_width
+                )
                 self.menu_highlight_box = (xy, xy2)
 
         # render_image is a windowed subset of menu_image which contains the full menu content which may be
         # too long to be displayed.  Use transform to "scroll" that window of content.
-        render_image = self.menu_image.transform((self.width, self.menu_height), Image.EXTENT,
-                                                 (0, scroll_offset, self.width, self.menu_height + scroll_offset))
+        render_image = self.menu_image.transform(
+            (self.width, self.menu_height),
+            Image.EXTENT,
+            (0, scroll_offset, self.width, self.menu_height + scroll_offset),
+        )
         self.render_image(render_image, 0)
 
     # Menu Screens (uses deep_edit image and draw objects)
@@ -223,23 +228,32 @@ class Lcd(lcdcolor.Lcdcolor):
         menu_list = list(sorted(menu_items))
         for i in menu_list:
             if idx is 0:
-                self.menu_draw.text((x, y), "%s" % menu_items[i][Token.NAME], self.foreground, self.small_font)
-                x = 8   # indent after first element (back button)
+                self.menu_draw.text(
+                    (x, y), "%s" % menu_items[i][Token.NAME], self.foreground, self.small_font
+                )
+                x = 8  # indent after first element (back button)
             else:
-                self.menu_draw.text((x, y), "%s %s" % (i, menu_items[i][Token.NAME]), self.foreground,
-                                    self.small_font)
+                self.menu_draw.text(
+                    (x, y),
+                    "%s %s" % (i, menu_items[i][Token.NAME]),
+                    self.foreground,
+                    self.small_font,
+                )
             y += self.menu_highlight_box_height
             idx += 1
         self.refresh_menu()
 
     def menu_highlight(self, index):
         scroll_idx = 0
-        highlight = ((index * 10, index * 10 + 8))
+        highlight = (index * 10, index * 10 + 8)
         num_visible = int(round(self.menu_height / self.menu_highlight_box_height)) - 1
         if index > num_visible:
             scroll_idx = index - num_visible
-        self.refresh_menu(highlight, index * self.menu_highlight_box_height,
-                          scroll_idx * self.menu_highlight_box_height)
+        self.refresh_menu(
+            highlight,
+            index * self.menu_highlight_box_height,
+            scroll_idx * self.menu_highlight_box_height,
+        )
 
     def draw_footswitch(self, xy1, xy2, zone, text, color):
         # Many fudge factors here to make the footswitch icon smaller than the highlight bounding box
@@ -250,19 +264,25 @@ class Lcd(lcdcolor.Lcdcolor):
         hy1 = xy1[1] + 10
         hx2 = xy2[0] - 2
         hy2 = xy2[1] - 2
-        self.draw[zone].ellipse(((hx1, hy1), (hx2, hy2)), fill=None, outline=color, width=self.footswitch_ring_width)
+        self.draw[zone].ellipse(
+            ((hx1, hy1), (hx2, hy2)), fill=None, outline=color, width=self.footswitch_ring_width
+        )
 
         # cap bottom
         fx1 = xy1[0] + 10
         fy1 = xy2[1] - 34
         fx2 = xy2[0] - 10
         fy2 = fy1 + 16
-        self.draw[zone].ellipse(((fx1, fy1), (fx2, fy2)), fill=self.background, outline="gray", width=2)
+        self.draw[zone].ellipse(
+            ((fx1, fy1), (fx2, fy2)), fill=self.background, outline="gray", width=2
+        )
 
         # cap top
         fy1 -= 6
         fy2 -= 6
-        self.draw[zone].ellipse(((fx1, fy1), (fx2, fy2)), fill=self.background, outline="gray", width=2)
+        self.draw[zone].ellipse(
+            ((fx1, fy1), (fx2, fy2)), fill=self.background, outline="gray", width=2
+        )
 
         # label
         self.draw[zone].text((xy1[0], xy2[1]), text, self.foreground, self.small_font)
@@ -273,13 +293,19 @@ class Lcd(lcdcolor.Lcdcolor):
         self.erase_zone(self.ZONE_TOOLS)
         tools = []
         if self.tool_wifi is None:
-            self.tool_wifi = Tool.Tool(wifi_type, 240, 1, os.path.join(self.imagedir, "wifi_gray.png"))
+            self.tool_wifi = Tool.Tool(
+                wifi_type, 240, 1, os.path.join(self.imagedir, "wifi_gray.png")
+            )
             tools.append(self.tool_wifi)
         if self.tool_bypass is None:
-            self.tool_bypass = Tool.Tool(bypass_type, 270, 1, os.path.join(self.imagedir, "power_gray.png"))
+            self.tool_bypass = Tool.Tool(
+                bypass_type, 270, 1, os.path.join(self.imagedir, "power_gray.png")
+            )
             tools.append(self.tool_bypass)
         if self.tool_system is None:
-            self.tool_system = Tool.Tool(system_type, 296, 1, os.path.join(self.imagedir, "wrench_silver.png"))
+            self.tool_system = Tool.Tool(
+                system_type, 296, 1, os.path.join(self.imagedir, "wrench_silver.png")
+            )
             tools.append(self.tool_system)
         if len(tools) > 0:
             self.tools = tools
@@ -311,4 +337,3 @@ class Lcd(lcdcolor.Lcdcolor):
 
     def clear(self):
         self.disp.fill(0)
-

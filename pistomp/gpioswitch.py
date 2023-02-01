@@ -21,8 +21,8 @@ import pistomp.controller as controller
 import time
 import queue
 
-class GpioSwitch(controller.Controller):
 
+class GpioSwitch(controller.Controller):
     def __init__(self, fs_pin, midi_channel, midi_CC):
         super(GpioSwitch, self).__init__(midi_channel, midi_CC)
         self.fs_pin = fs_pin

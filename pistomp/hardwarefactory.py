@@ -19,6 +19,7 @@ import pistomp.config as config
 import pistomp.pistomp as Pistomp
 import pistomp.pistompcore as Pistompcore
 
+
 class Hardwarefactory:
     __single = None
 
@@ -32,6 +33,10 @@ class Hardwarefactory:
     def create(self, handler, midiout):
         version = self.cfg[Token.HARDWARE][Token.VERSION]
         if version is None or (version < 2.0):
-            return Pistomp.Pistomp(self.cfg, handler, midiout, refresh_callback=handler.update_lcd_fs)
+            return Pistomp.Pistomp(
+                self.cfg, handler, midiout, refresh_callback=handler.update_lcd_fs
+            )
         elif (version >= 2.0) and (version < 3.0):
-            return Pistompcore.Pistompcore(self.cfg, handler, midiout, refresh_callback=handler.update_lcd_fs)
+            return Pistompcore.Pistompcore(
+                self.cfg, handler, midiout, refresh_callback=handler.update_lcd_fs
+            )

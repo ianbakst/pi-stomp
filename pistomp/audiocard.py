@@ -20,16 +20,15 @@ import subprocess
 
 
 class Audiocard:
-
     def __init__(self, cwd):
         self.cwd = cwd
         self.card_index = 0
-        self.config_file = '/var/lib/alsa/asound.state'  # global config used by alsamixer, etc.
+        self.config_file = "/var/lib/alsa/asound.state"  # global config used by alsamixer, etc.
         self.initial_config_file = None  # use this if common config_file loading fails
         self.initial_config_name = None
         self.card_index = 0
-        self.CAPTURE_VOLUME = 'Capture'
-        self.MASTER = 'Master'
+        self.CAPTURE_VOLUME = "Capture"
+        self.MASTER = "Master"
 
     def restore(self):
         # If the global config_file either doesn't exist, doesn't contain the name of our audiocard, or fails restore,
@@ -40,13 +39,15 @@ class Audiocard:
         for fname in conf_files:
             if os.access(fname, os.R_OK) is True:
                 try:
-                    looking_for = bytes(("state.%s" % self.initial_config_name), 'utf-8')
+                    looking_for = bytes(("state.%s" % self.initial_config_name), "utf-8")
                     f = open(fname)
                     with f as text:
                         s = mmap.mmap(text.fileno(), 0, access=mmap.ACCESS_READ)
                         if s.find(looking_for) != -1:
                             logging.info("restoring audio card settings from: %s" % fname)
-                            subprocess.run(['/usr/sbin/alsactl', '-f', fname, '--no-lock', 'restore'])
+                            subprocess.run(
+                                ["/usr/sbin/alsactl", "-f", fname, "--no-lock", "restore"]
+                            )
                             f.close()
                             # If the file loaded was not the global, then save it so it will be next time
                             if fname is not self.config_file:
@@ -61,7 +62,9 @@ class Audiocard:
         # Unfortunate that setting changes will not be persisted between boots, but not worth getting the mess of
         # dealing with file permissions or sync issues when settings are changed via another program (eg. aslamixer)
         try:
-            subprocess.run(['/usr/sbin/alsactl', '-f', self.config_file, 'store'], stderr=subprocess.DEVNULL)
+            subprocess.run(
+                ["/usr/sbin/alsactl", "-f", self.config_file, "store"], stderr=subprocess.DEVNULL
+            )
             logging.info("audio card settings saved to: %s" % self.config_file)
         except:
             logging.error("Failed trying to store audio card settings to: %s" % self.config_file)
@@ -77,10 +80,10 @@ class Audiocard:
             return value
         s = output.decode()
         # TODO kinda lame screenscrape here for the last value eg. [0.58dB] then strip off the []'s and db
-        res = s.rfind('dB]')
+        res = s.rfind("dB]")
         if res > 0:
-            start = s.rfind('[', 0, res)
-            val_str = s[start+1:res-3]
+            start = s.rfind("[", 0, res)
+            val_str = s[start + 1 : res - 3]
         try:
             value = float(val_str)
         except:
@@ -94,5 +97,3 @@ class Audiocard:
         except subprocess.CalledProcessError:
             logging.error("Failed trying to set audio card parameter")
         self.store()
-
-

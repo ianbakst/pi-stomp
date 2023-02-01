@@ -20,11 +20,12 @@ import common.util as util
 import pistomp.lcd as abstract_lcd
 from PIL import ImageColor
 
-from pistomp.footswitch import Footswitch  # TODO would like to avoid this module knowing such details
+from pistomp.footswitch import (
+    Footswitch,
+)  # TODO would like to avoid this module knowing such details
 
 
 class Lcdbase(abstract_lcd.Lcd):
-
     def __init__(self, cwd):
 
         # The following parameters need to be specified by the concrete subclass
@@ -79,13 +80,18 @@ class Lcdbase(abstract_lcd.Lcd):
         self.selected_plugin = None
         self.selected_box = None  # ((x0, y0), (x1, y1), width)
 
-
     # This method verifies that each variable declared above in __init__ gets assigned a value by the object class
     # It might flag vars which get assigned a value of None intentionally by the object class
     # A better solution might be to create these as abstract properties, but then they are accessed as strings
     # which is likely worse
     def check_vars_set(self):
-        known_exceptions = ["selected_plugin", "selected_box", "tool_wifi", "tool_bypass", "tool_system"]
+        known_exceptions = [
+            "selected_plugin",
+            "selected_box",
+            "tool_wifi",
+            "tool_bypass",
+            "tool_system",
+        ]
         for v in self.__dict__:
             if getattr(self, v) is None:
                 if v not in known_exceptions:
@@ -120,18 +126,20 @@ class Lcdbase(abstract_lcd.Lcd):
         y_offset = 0 if not self.flip else self.height
         for i in range(self.zones):
             if self.flip:
-                y_offset -= (self.zone_height[i])
+                y_offset -= self.zone_height[i]
                 if y_offset < 0:
                     break
             else:
                 if i != 0:
-                    y_offset += (self.zone_height[i-1])
+                    y_offset += self.zone_height[i - 1]
                     if y_offset > self.height:
                         break
             self.zone_y[i] = y_offset
 
-    def base_draw_title(self, draw, font, pedalboard, preset, invert_pb, invert_pre, highlight_only=False):
-        pb_size  = font.getsize(pedalboard)[0]
+    def base_draw_title(
+        self, draw, font, pedalboard, preset, invert_pb, invert_pre, highlight_only=False
+    ):
+        pb_size = font.getsize(pedalboard)[0]
         font_height = font.getsize(pedalboard)[1]
         x0 = self.left
         y = self.top  # negative pushes text to top of LCD
@@ -178,9 +186,13 @@ class Lcdbase(abstract_lcd.Lcd):
                         label = c.parameter.name
                     else:
                         label = self.shorten_name(p.instance_id, self.footswitch_width)
-                    color = self.valid_color(c.lcd_color) if c.lcd_color else self.get_plugin_color(p)
+                    color = (
+                        self.valid_color(c.lcd_color) if c.lcd_color else self.get_plugin_color(p)
+                    )
                     x = self.footswitch_pitch[len(fss)] * fs_id
-                    self.draw_plugin(zone, x, 0, label, self.footswitch_width, False, p, True, color)
+                    self.draw_plugin(
+                        zone, x, 0, label, self.footswitch_width, False, p, True, color
+                    )
 
         # Draw any footswitches which weren't found to be bound to a plugin
         for fs_id in range(len(fss)):
@@ -200,11 +212,13 @@ class Lcdbase(abstract_lcd.Lcd):
         f = color if fill else None
         draw.rectangle((xy, xy2), f, outline=color, width=width)
 
-    def draw_box(self, xy, xy2, zone, text=None, round_bottom_corners=False, fill=False, color=None, width=2):
+    def draw_box(
+        self, xy, xy2, zone, text=None, round_bottom_corners=False, fill=False, color=None, width=2
+    ):
         self.draw_just_a_box(self.draw[zone], xy, xy2, fill, color, width)
-        #self.draw[zone].point(xy, self.background)  # Round the top corners
-        #self.draw[zone].point((xy2[0],xy[1]), self.background)
-        #if round_bottom_corners:
+        # self.draw[zone].point(xy, self.background)  # Round the top corners
+        # self.draw[zone].point((xy2[0],xy[1]), self.background)
+        # if round_bottom_corners:
         #    self.draw[zone].point((xy[0],xy2[1]))
         #    self.draw[zone].point((xy2[0],xy2[1]))
         if text:
@@ -224,11 +238,13 @@ class Lcdbase(abstract_lcd.Lcd):
             self.refresh_zone(z)
 
     def erase_zone(self, zone_idx):
-        self.images[zone_idx].paste(self.background, (0, 0, self.width, self.zone_height[zone_idx]))
+        self.images[zone_idx].paste(
+            self.background, (0, 0, self.width, self.zone_height[zone_idx])
+        )
 
     def shorten_name(self, name, width):
         text = ""
-        for x in name.lower().replace('_', '').replace('/', '').replace(' ', ''):
+        for x in name.lower().replace("_", "").replace("/", "").replace(" ", ""):
             test = text + x
             test_size = self.small_font.getsize(test)[0]
             if test_size >= width:

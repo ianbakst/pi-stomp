@@ -16,7 +16,8 @@
 from abc import ABC, abstractmethod
 
 import board
-#from board import SCL, SDA
+
+# from board import SCL, SDA
 import busio
 import digitalio
 from PIL import Image, ImageDraw, ImageFont
@@ -24,8 +25,8 @@ import adafruit_rgb_display.st7789 as st7789
 
 import ST7789
 
-class Lcd(ABC):
 
+class Lcd(ABC):
     def __init__(self, cwd):
 
         # Create ST7789 LCD display class.
@@ -37,7 +38,7 @@ class Lcd(ABC):
             width=240,
             height=135,
             rotation=0,
-            spi_speed_hz=80 * 1000 * 1000
+            spi_speed_hz=80 * 1000 * 1000,
         )
 
         # Create blank image for drawing.
@@ -59,9 +60,13 @@ class Lcd(ABC):
 
         # Font
         self.font_size = 26
-        self.font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', self.font_size)
+        self.font = ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", self.font_size
+        )
         self.splash_font_size = 40
-        self.splash_font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', self.splash_font_size)
+        self.splash_font = ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", self.splash_font_size
+        )
 
         # Turn on the backlight
         backlight = digitalio.DigitalInOut(board.D22)
@@ -74,7 +79,9 @@ class Lcd(ABC):
 
     def splash_show(self, boot=True):
         self.clear()
-        self.draw.text((self.left + 10, self.top + 70), "pi Stomp!", font=self.splash_font, fill=255)
+        self.draw.text(
+            (self.left + 10, self.top + 70), "pi Stomp!", font=self.splash_font, fill=255
+        )
         self.refresh()
 
     def cleanup(self):

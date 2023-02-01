@@ -21,7 +21,9 @@ import pistomp.lcd as abstract_lcd
 from gfxhat import touch, lcd, backlight, fonts
 from PIL import Image, ImageFont, ImageDraw
 
-from pistomp.footswitch import Footswitch  # TODO would like to avoid this module knowing such details
+from pistomp.footswitch import (
+    Footswitch,
+)  # TODO would like to avoid this module knowing such details
 
 
 class Lcd(abstract_lcd.Lcd):
@@ -38,23 +40,14 @@ class Lcd(abstract_lcd.Lcd):
         self.num_leds = 6
 
         # Zone dimensions
-        self.zone_height = {0: 12,
-                            1: 8,
-                            2: 2,
-                            3: 13,
-                            4: 2,
-                            5: 13,
-                            6: 2,
-                            7: 12}
+        self.zone_height = {0: 12, 1: 8, 2: 2, 3: 13, 4: 2, 5: 13, 6: 2, 7: 12}
 
-        self.footswitch_xy = {0: (0,   0),
-                              1: (51,  0),
-                              2: (101, 0)}
+        self.footswitch_xy = {0: (0, 0), 1: (51, 0), 2: (101, 0)}
 
         # Menu (System menu, Parameter edit, etc.)
         self.menu_height = self.height - self.zone_height[0] + 1  # TODO figure out why +1
         self.menu_image_height = self.menu_height * 10  # 10 pages (~40 parameters) enough?
-        self.menu_image = Image.new('L', (self.width, self.menu_image_height))
+        self.menu_image = Image.new("L", (self.width, self.menu_image_height))
         self.menu_draw = ImageDraw.Draw(self.menu_image)
         self.graph_width = 127
         self.menu_y0 = 40
@@ -68,33 +61,41 @@ class Lcd(abstract_lcd.Lcd):
         self.footswitch_width = 26
 
         self.zones = 8
-        self.images = [Image.new('L', (self.width, self.zone_height[0])),  # Pedalboard / Preset Title bar
-                       Image.new('L', (self.width, self.zone_height[1])),  # Analog Controllers
-                       Image.new('L', (self.width, self.zone_height[2])),  # Plugin selection
-                       Image.new('L', (self.width, self.zone_height[3])),  # Plugins Row 1
-                       Image.new('L', (self.width, self.zone_height[4])),  # Plugin selection
-                       Image.new('L', (self.width, self.zone_height[5])),  # Plugins Row 2
-                       Image.new('L', (self.width, self.zone_height[6])),  # Plugin selection
-                       Image.new('L', (self.width, self.zone_height[7]))]  # Footswitch Plugins
+        self.images = [
+            Image.new("L", (self.width, self.zone_height[0])),  # Pedalboard / Preset Title bar
+            Image.new("L", (self.width, self.zone_height[1])),  # Analog Controllers
+            Image.new("L", (self.width, self.zone_height[2])),  # Plugin selection
+            Image.new("L", (self.width, self.zone_height[3])),  # Plugins Row 1
+            Image.new("L", (self.width, self.zone_height[4])),  # Plugin selection
+            Image.new("L", (self.width, self.zone_height[5])),  # Plugins Row 2
+            Image.new("L", (self.width, self.zone_height[6])),  # Plugin selection
+            Image.new("L", (self.width, self.zone_height[7])),
+        ]  # Footswitch Plugins
 
-        self.draw = [ImageDraw.Draw(self.images[0]), ImageDraw.Draw(self.images[1]),
-                     ImageDraw.Draw(self.images[2]), ImageDraw.Draw(self.images[3]),
-                     ImageDraw.Draw(self.images[4]), ImageDraw.Draw(self.images[5]),
-                     ImageDraw.Draw(self.images[6]), ImageDraw.Draw(self.images[7])]
+        self.draw = [
+            ImageDraw.Draw(self.images[0]),
+            ImageDraw.Draw(self.images[1]),
+            ImageDraw.Draw(self.images[2]),
+            ImageDraw.Draw(self.images[3]),
+            ImageDraw.Draw(self.images[4]),
+            ImageDraw.Draw(self.images[5]),
+            ImageDraw.Draw(self.images[6]),
+            ImageDraw.Draw(self.images[7]),
+        ]
 
         # Load fonts
         self.splash_font = ImageFont.truetype("DejaVuSans-Bold.ttf", 18)
         self.title_font = ImageFont.truetype("DejaVuSans-Bold.ttf", 11)
         self.label_font = ImageFont.truetype("DejaVuSans-Bold.ttf", 10)
         self.small_bold_font = ImageFont.truetype("DejaVuSansMono-Bold.ttf", 8)
-        #self.small_font = ImageFont.truetype("DejaVuSansMono.ttf", 8)
+        # self.small_font = ImageFont.truetype("DejaVuSansMono.ttf", 8)
         self.small_font = ImageFont.truetype(os.path.join(cwd, "fonts", "EtBt6001-JO47.ttf"), 6)
 
         # Splash
-        text_im = Image.new('L', (103, 63))
+        text_im = Image.new("L", (103, 63))
         draw = ImageDraw.Draw(text_im)
         draw.text((7, 20), "pi Stomp!", True, self.splash_font)
-        self.splash = Image.new('L', (self.width, self.height))
+        self.splash = Image.new("L", (self.width, self.height))
         self.splash.paste(text_im.rotate(24), (0, 0, 103, 63))
         self.splash_show()
 
@@ -129,7 +130,7 @@ class Lcd(abstract_lcd.Lcd):
         self.images[zone_idx].paste(0, (0, 0, self.width, self.zone_height[zone_idx]))
 
     def refresh_zone(self, zone_idx):
-        #flipped = self.images[zone_idx].transpose(Image.ROTATE_180)
+        # flipped = self.images[zone_idx].transpose(Image.ROTATE_180)
         flipped = self.images[zone_idx]
 
         # Determine the start y position by adding the height of all previous zones
@@ -153,8 +154,12 @@ class Lcd(abstract_lcd.Lcd):
                 y_draw = y + scroll_offset
                 if y_draw < self.menu_image_height:
                     pixel = self.menu_image.getpixel((x, y_draw))
-                    if highlight_range and (y_draw >= highlight_range[0]) and (y_draw <= highlight_range[1]):  # TODO LAME
-                         pixel = not pixel
+                    if (
+                        highlight_range
+                        and (y_draw >= highlight_range[0])
+                        and (y_draw <= highlight_range[1])
+                    ):  # TODO LAME
+                        pixel = not pixel
                     lcd.set_pixel(self.width - x - 1, self.height - y - y_offset, pixel)
         lcd.show()
 
@@ -208,17 +213,21 @@ class Lcd(abstract_lcd.Lcd):
         menu_list = list(sorted(menu_items))
         for i in menu_list:
             if idx is 0:
-                self.menu_draw.text((x, y), "%s" % menu_items[i][Token.NAME], True, self.small_font)
-                x = 8   # indent after first element (back button)
+                self.menu_draw.text(
+                    (x, y), "%s" % menu_items[i][Token.NAME], True, self.small_font
+                )
+                x = 8  # indent after first element (back button)
             else:
-                self.menu_draw.text((x, y), "%s %s" % (i, menu_items[i][Token.NAME]), True, self.small_font)
+                self.menu_draw.text(
+                    (x, y), "%s %s" % (i, menu_items[i][Token.NAME]), True, self.small_font
+                )
             y += 10
             idx += 1
         self.refresh_menu()  # TODO Change name
 
     def menu_highlight(self, index):
         scroll_idx = 0
-        highlight = ((index * 10, index * 10 + 8))  # TODO replace 10
+        highlight = (index * 10, index * 10 + 8)  # TODO replace 10
         num_visible = 3  # TODO
         if index > num_visible:
             scroll_idx = index - num_visible
@@ -233,9 +242,9 @@ class Lcd(abstract_lcd.Lcd):
         self.refresh_zone(0)
 
         # Back message (zone 1)
-        #self.images[1].paste(0, (0, 0, self.width, self.zone_height[1]))
-        #self.draw[1].text((0, 0), "Press and hold to go back", True, self.small_bold_font)  # TODO this gets erased by graph function
-        #self.refresh_zone(1)
+        # self.images[1].paste(0, (0, 0, self.width, self.zone_height[1]))
+        # self.draw[1].text((0, 0), "Press and hold to go back", True, self.small_bold_font)  # TODO this gets erased by graph function
+        # self.refresh_zone(1)
 
         # Graph
         self.draw_value_edit_graph(parameter, value)
@@ -262,8 +271,12 @@ class Lcd(abstract_lcd.Lcd):
             yref = yref - 1
 
         self.menu_draw.text((0, self.menu_y0 + 4), "%d" % parameter.minimum, 1, self.small_font)
-        self.menu_draw.text((self.graph_width - (len(str(parameter.maximum)) * 4), self.menu_y0 + 4),
-                            "%d" % parameter.maximum, 1, self.small_font)
+        self.menu_draw.text(
+            (self.graph_width - (len(str(parameter.maximum)) * 4), self.menu_y0 + 4),
+            "%d" % parameter.maximum,
+            1,
+            self.small_font,
+        )
 
         self.refresh_menu()
 
@@ -271,8 +284,8 @@ class Lcd(abstract_lcd.Lcd):
     def draw_title(self, pedalboard, preset, invert_pb, invert_pre, highlight_only=False):
         self.erase_zone(0)
 
-        #pedalboard = pedalboard.lower().capitalize()
-        pb_size  = self.title_font.getsize(pedalboard)[0]
+        # pedalboard = pedalboard.lower().capitalize()
+        pb_size = self.title_font.getsize(pedalboard)[0]
         font_height = self.title_font.getsize(pedalboard)[1]
         y = -2  # negative pushes text to top of LCD
 
@@ -289,7 +302,7 @@ class Lcd(abstract_lcd.Lcd):
             self.draw[0].text((x, y), delimiter, 1, self.title_font)
 
             # Preset Name
-            #preset = preset.lower().capitalize()
+            # preset = preset.lower().capitalize()
             pre_size = self.title_font.getsize(preset)[0]
             x = x + self.title_font.getsize(delimiter)[0]
             x2 = x + pre_size
@@ -310,8 +323,10 @@ class Lcd(abstract_lcd.Lcd):
         for k, v in controllers.items():
             control_type = util.DICT_GET(v, Token.TYPE)
             s = k.split(":")
-            text = "%s:%s" % (self.shorten_name(s[0], self.plugin_width),
-                              self.shorten_name(s[1], self.plugin_width_medium))
+            text = "%s:%s" % (
+                self.shorten_name(s[0], self.plugin_width),
+                self.shorten_name(s[1], self.plugin_width_medium),
+            )
             if control_type == Token.EXPRESSION:
                 exp = text
             elif control_type == Token.KNOB:
@@ -326,7 +341,7 @@ class Lcd(abstract_lcd.Lcd):
         x = 66
         self.draw[zone].ellipse(((x, 0), (x + 6, 6)), True, 1)
         self.draw[zone].line(((x + 3, 0), (x + 3, 2)), False, 1)
-        self.draw[zone].text((x+9, 2), knob, True, self.small_font)
+        self.draw[zone].text((x + 9, 2), knob, True, self.small_font)
 
         self.refresh_zone(zone)
 
@@ -349,23 +364,23 @@ class Lcd(abstract_lcd.Lcd):
             y = plugin.lcd_xyz[1]
             zone = plugin.lcd_xyz[2] - 1
 
-            self.draw[zone].point((x+ 8, 0), True)
-            self.draw[zone].point((x+ 9, 0), True)
-            self.draw[zone].point((x+10, 0), True)
-            self.draw[zone].point((x+11, 0), True)
-            self.draw[zone].point((x+12, 0), True)
-            self.draw[zone].point((x+13, 0), True)
-            self.draw[zone].point((x+14, 0), True)
-            self.draw[zone].point((x+15, 0), True)
-            self.draw[zone].point((x+16, 0), True)
+            self.draw[zone].point((x + 8, 0), True)
+            self.draw[zone].point((x + 9, 0), True)
+            self.draw[zone].point((x + 10, 0), True)
+            self.draw[zone].point((x + 11, 0), True)
+            self.draw[zone].point((x + 12, 0), True)
+            self.draw[zone].point((x + 13, 0), True)
+            self.draw[zone].point((x + 14, 0), True)
+            self.draw[zone].point((x + 15, 0), True)
+            self.draw[zone].point((x + 16, 0), True)
 
-            self.draw[zone].point((x+ 9, 1), True)
-            self.draw[zone].point((x+10, 1), True)
-            self.draw[zone].point((x+11, 1), True)
-            self.draw[zone].point((x+12, 1), True)
-            self.draw[zone].point((x+13, 1), True)
-            self.draw[zone].point((x+14, 1), True)
-            self.draw[zone].point((x+15, 1), True)
+            self.draw[zone].point((x + 9, 1), True)
+            self.draw[zone].point((x + 10, 1), True)
+            self.draw[zone].point((x + 11, 1), True)
+            self.draw[zone].point((x + 12, 1), True)
+            self.draw[zone].point((x + 13, 1), True)
+            self.draw[zone].point((x + 14, 1), True)
+            self.draw[zone].point((x + 15, 1), True)
 
         self.refresh_zone(2)
         self.refresh_zone(4)
@@ -375,24 +390,26 @@ class Lcd(abstract_lcd.Lcd):
     def draw_box(self, xy, xy2, zone, text, round_bottom_corners=False):
         self.draw[zone].rectangle((xy, xy2), False, 1)
         self.draw[zone].point(xy)  # Round the top corners
-        self.draw[zone].point((xy2[0],xy[1]))
+        self.draw[zone].point((xy2[0], xy[1]))
         if round_bottom_corners:
-            self.draw[zone].point((xy[0],xy2[1]))
-            self.draw[zone].point((xy2[0],xy2[1]))
+            self.draw[zone].point((xy[0], xy2[1]))
+            self.draw[zone].point((xy2[0], xy2[1]))
         self.draw[zone].text((xy[0] + 2, xy[1] + 2), text, True, self.small_font)
 
     def draw_plugin(self, zone, x, y, text, width, eol, plugin, round_bottom_corners=False):
         text = self.shorten_name(text, width)
         x2 = x + width
-        if (eol):
+        if eol:
             x2 = x2 - 1
 
         plugin.lcd_xyz = (x, y, zone)
         self.draw_box((x, y), (x2, y + self.plugin_height), zone, text, round_bottom_corners)
 
-        bypass_indicator_xy = ((x+3, y+9), (x2-3, y+9))
+        bypass_indicator_xy = ((x + 3, y + 9), (x2 - 3, y + 9))
         plugin.bypass_indicator_xy = bypass_indicator_xy
-        self.draw[zone].line(bypass_indicator_xy, not plugin.is_bypassed(), self.plugin_bypass_thickness)
+        self.draw[zone].line(
+            bypass_indicator_xy, not plugin.is_bypassed(), self.plugin_bypass_thickness
+        )
 
         return x2
 
@@ -409,18 +426,33 @@ class Lcd(abstract_lcd.Lcd):
                     if c.parameter.symbol != ":bypass":  # TODO token
                         label = c.parameter.name
                     else:
-                        label = p.instance_id.replace('/', "")[:self.plugin_label_length]  # TODO this replacement should be done in one place higher level
+                        label = p.instance_id.replace("/", "")[
+                            : self.plugin_label_length
+                        ]  # TODO this replacement should be done in one place higher level
                         label = label.replace("_", "")
-                    self.draw_plugin(7, self.footswitch_xy[fs_id][0], self.footswitch_xy[fs_id][1], label,
-                                     self.footswitch_width, False, p, True)
+                    self.draw_plugin(
+                        7,
+                        self.footswitch_xy[fs_id][0],
+                        self.footswitch_xy[fs_id][1],
+                        label,
+                        self.footswitch_width,
+                        False,
+                        p,
+                        True,
+                    )
 
         # Draw any footswitches which weren't found to be bound to a plugin
         for fs_id in range(len(fss)):
             if fss[fs_id] is None:
                 continue
             label = "" if fss[fs_id].display_label is None else fss[fs_id].display_label
-            xy2 = (self.footswitch_xy[fs_id][0] + self.footswitch_width, self.footswitch_xy[fs_id][1] + self.plugin_height)
-            self.draw_box((self.footswitch_xy[fs_id][0], self.footswitch_xy[fs_id][1]), xy2, 7, label, True)
+            xy2 = (
+                self.footswitch_xy[fs_id][0] + self.footswitch_width,
+                self.footswitch_xy[fs_id][1] + self.plugin_height,
+            )
+            self.draw_box(
+                (self.footswitch_xy[fs_id][0], self.footswitch_xy[fs_id][1]), xy2, 7, label, True
+            )
 
         self.refresh_zone(7)
 
@@ -445,7 +477,7 @@ class Lcd(abstract_lcd.Lcd):
         for p in plugins:
             if p.has_footswitch:
                 continue
-            label = p.instance_id.replace('/', "")[:self.plugin_label_length]
+            label = p.instance_id.replace("/", "")[: self.plugin_label_length]
             label = label.replace("_", "")
             count += 1
             if count > 4:
@@ -463,7 +495,7 @@ class Lcd(abstract_lcd.Lcd):
 
     def shorten_name(self, name, width):
         text = ""
-        for x in name.lower().replace('_', '').replace('/', '').replace(' ', ''):
+        for x in name.lower().replace("_", "").replace("/", "").replace(" ", ""):
             test = text + x
             test_size = self.small_font.getsize(test)[0]
             if test_size >= width:

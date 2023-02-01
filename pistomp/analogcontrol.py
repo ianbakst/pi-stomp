@@ -22,14 +22,13 @@ from adafruit_mcp3xxx.analog_in import AnalogIn
 
 
 class AnalogControl:
-
     def __init__(self, spi, adc_channel, tolerance):
 
         self.spi = spi
         self.adc_channel = adc_channel
-        self.last_read = 0          # this keeps track of the last potentiometer value
+        self.last_read = 0  # this keeps track of the last potentiometer value
         self.tolerance = tolerance  # to keep from being jittery we'll only change the
-                                    # value when the control has moved a significant amount
+        # value when the control has moved a significant amount
 
     def readChannel(self):
         adc = self.spi.xfer2([1, (8 + self.adc_channel) << 4, 0])
