@@ -1,24 +1,24 @@
-import analogcontrol
-import analogmidicontrol
-import analogswitch
-import audiocard
-import config
-import controller
-import encoder
-import encoderswitch
-import footswitch
-import gpioswitch
-import hardware
-import host
-import lcd
-import modalapistomp
-import parameter
-import pedalboard
-import plugin
-import relay
-import tool
-import util
-import wifi
+from . import analogcontrol
+from . import analogmidicontrol
+from . import analogswitch
+from . import audiocard
+from . import config
+from . import controller
+from . import encoder
+from . import encoderswitch
+from . import footswitch
+from . import gpioswitch
+from . import hardware
+from . import host
+from . import lcd
+from . import modalapistomp
+from . import parameter
+from . import pedalboard
+from . import plugin
+from . import relay
+from . import tool
+from . import util
+from . import wifi
 
 
 __all__ = [

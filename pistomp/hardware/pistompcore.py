@@ -23,12 +23,12 @@
 
 import RPi.GPIO as GPIO
 
-from .encoder import Encoder
-from .encoderswitch import EncoderSwitch
+from pistomp.encoder import Encoder
+from pistomp.encoderswitch import EncoderSwitch
 from .hardware import Hardware
-from .relay import Relay
+from pistomp.relay import Relay
 
-from .lcd.ili9341 import ILI9341
+from pistomp.lcd.ili9341 import ILI9341
 
 # import pistomp.lcd128x64 as Lcd
 # import pistomp.lcd135x240 as Lcd

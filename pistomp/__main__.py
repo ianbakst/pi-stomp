@@ -1,5 +1,5 @@
 import argparse
-from .modalapistomp import main_loop
+from pistomp.modalapistomp import main_loop
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -12,7 +12,7 @@ parser.add_argument(
 )
 parser.add_argument(
     "--host",
-    "-h",
+    "-H",
     help="Plugin host to use. Example --host mod'",
     default="mod",
     choices=["mod", "generic", "test"],
