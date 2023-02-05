@@ -13,15 +13,16 @@
 # You should have received a copy of the GNU General Public License
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
 
-from abc import abstractmethod
 import logging
 import os
 import spidev
 
-from .util import constants as Token
-from .util import common as Util
-from .analogmidicontrol import AnalogMidiControl
-from .footswitch import Footswitch
+import common.token as Token
+import common.util as Util
+import pistomp.analogmidicontrol as AnalogMidiControl
+import pistomp.footswitch as Footswitch
+
+from abc import abstractmethod
 
 
 class Hardware:
@@ -143,7 +144,7 @@ class Hardware:
                 )
                 continue
 
-            fs = Footswitch(
+            fs = Footswitch.Footswitch(
                 id if id else idx,
                 gpio_input,
                 gpio_output,
@@ -184,7 +185,7 @@ class Hardware:
             if threshold is None:
                 threshold = 16  # Default, 1024 is full scale
 
-            control = AnalogMidiControl(
+            control = AnalogMidiControl.AnalogMidiControl(
                 self.spi,
                 adc_input,
                 threshold,
@@ -215,7 +216,7 @@ class Hardware:
         self.midi_channel = self.__get_real_midi_channel(cfg)
         # TODO could iterate thru all objects here instead of handling in __init_footswitches
         for ac in self.analog_controls:
-            if isinstance(ac, AnalogMidiControl):
+            if isinstance(ac, AnalogMidiControl.AnalogMidiControl):
                 ac.set_midi_channel(self.midi_channel)
 
     def __init_footswitches_default(self):

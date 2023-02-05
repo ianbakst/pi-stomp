@@ -17,12 +17,12 @@ import logging
 import RPi.GPIO as GPIO
 from rtmidi.midiconstants import CONTROL_CHANGE
 
-from .gpioswitch import GpioSwitch
+import pistomp.gpioswitch as gpioswitch
 
 
-class Footswitch(GpioSwitch):
+class Footswitch(gpioswitch.GpioSwitch):
     def __init__(self, id, fs_pin, led_pin, midi_CC, midi_channel, midiout, refresh_callback):
-        super().__init__(fs_pin, midi_channel, midi_CC)
+        super(Footswitch, self).__init__(fs_pin, midi_channel, midi_CC)
         self.id = id
         self.display_label = None
         self.enabled = False

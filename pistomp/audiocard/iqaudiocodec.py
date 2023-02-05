@@ -12,23 +12,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
-
-from enum import Enum
-import time
-
-from .gpioswitch import GpioSwitch
-from .util.mode import SwitchValue
+import os
+from .audiocard import AudioCard
 
 
-class EncoderSwitch(GpioSwitch):
-    def __init__(self, gpio, callback):
-        super(EncoderSwitch, self).__init__(gpio, None, None)
-        self.last_read = None  # this keeps track of the last value
-        self.trigger_count = 0
-        self.callback = callback
-        self.longpress_state = False
-        self.gpio = gpio
-
-    # Override of base class method
-    def pressed(self, short):
-        self.callback(SwitchValue.RELEASED if short else SwitchValue.LONGPRESSED)
+class IQaudioCodec(AudioCard):
+    def __init__(self, cwd):
+        super().__init__(cwd)
+        self.initial_config_file = os.path.join(cwd, "setup", "audio", "iqaudiocodec.state")
+        self.initial_config_name = "IQaudIOCODEC"
+        self.CAPTURE_VOLUME = "Aux"
+        self.MASTER = "Lineout"  # This is the Speaker output volume

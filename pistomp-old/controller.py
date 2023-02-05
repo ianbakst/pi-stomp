@@ -14,21 +14,22 @@
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
 
 from enum import Enum
-import time
-
-from .gpioswitch import GpioSwitch
-from .util.mode import SwitchValue
+import json
+import logging
 
 
-class EncoderSwitch(GpioSwitch):
-    def __init__(self, gpio, callback):
-        super(EncoderSwitch, self).__init__(gpio, None, None)
-        self.last_read = None  # this keeps track of the last value
-        self.trigger_count = 0
-        self.callback = callback
-        self.longpress_state = False
-        self.gpio = gpio
+class Controller:
+    def __init__(self, midi_channel, midi_CC):
+        self.midi_channel = midi_channel
+        self.midi_CC = midi_CC
+        self.minimum = None
+        self.maximum = None
+        self.parameter = None
+        self.hardware_name = None
+        self.type = None
 
-    # Override of base class method
-    def pressed(self, short):
-        self.callback(SwitchValue.RELEASED if short else SwitchValue.LONGPRESSED)
+    def to_json(self):
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+
+    def set_value(self, value):
+        logging.error("Controller subclass hasn't overriden the set_value method")

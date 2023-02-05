@@ -12,17 +12,35 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
-from .analogcontrol import AnalogControl
-from .util.mode import SwitchValue
+
+import busio
+import digitalio
+import board
+import adafruit_mcp3xxx.mcp3008 as MCP
+from adafruit_mcp3xxx.analog_in import AnalogIn
+from enum import Enum
+
+
+import pistomp.analogcontrol as analogcontrol
+
+
+class Value(Enum):
+    DEFAULT = 0
+    PRESSED = 1
+    RELEASED = 2
+    LONGPRESSED = 3
+    CLICKED = 4
+    DOUBLECLICKED = 5
+
 
 LONGPRESS_THRESHOLD = (
     60  # TODO somewhat LAME.  It's dependent on the refresh frequency of the main loop
 )
 
 
-class AnalogSwitch(AnalogControl):
+class AnalogSwitch(analogcontrol.AnalogControl):
     def __init__(self, spi, adc_channel, tolerance, callback):
-        super().__init__(spi, adc_channel, tolerance)
+        super(AnalogSwitch, self).__init__(spi, adc_channel, tolerance)
         self.value = None  # this keeps track of the last value
         self.trigger_count = 0
         self.callback = callback
@@ -55,16 +73,16 @@ class AnalogSwitch(AnalogControl):
             self.value = new_value
 
             if self.trigger_count > LONGPRESS_THRESHOLD:
-                new_value = SwitchValue.LONGPRESSED
+                new_value = Value.LONGPRESSED
             elif new_value < self.tolerance:
-                new_value = SwitchValue.PRESSED
+                new_value = Value.PRESSED
             elif new_value >= self.tolerance:
                 if self.longpress_state:
                     self.longpress_state = False
                     self.trigger_count = 0
                     return
                 else:
-                    new_value = SwitchValue.RELEASED
+                    new_value = Value.RELEASED
             self.trigger_count = 0
 
             self.callback(new_value)

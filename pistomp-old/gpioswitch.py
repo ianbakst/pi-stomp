@@ -17,14 +17,14 @@ import logging
 import RPi.GPIO as GPIO
 from rtmidi.midiconstants import CONTROL_CHANGE
 
-from .controller import Controller
+import pistomp.controller as controller
 import time
 import queue
 
 
-class GpioSwitch(Controller):
+class GpioSwitch(controller.Controller):
     def __init__(self, fs_pin, midi_channel, midi_CC):
-        super().__init__(midi_channel, midi_CC)
+        super(GpioSwitch, self).__init__(midi_channel, midi_CC)
         self.fs_pin = fs_pin
         self.cur_tstamp = None
         self.events = queue.Queue()

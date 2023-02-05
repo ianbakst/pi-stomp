@@ -26,12 +26,14 @@ import RPi.GPIO as GPIO
 import common.token as Token
 import common.util as Util
 
-from .encoder import Encoder
-from .encoderswitch import EncoderSwitch
-from .hardware import Hardware
-from .relay import Relay
+import pistomp.analogmidicontrol as AnalogMidiControl
+import pistomp.encoder as Encoder
+import pistomp.encoderswitch as EncoderSwitch
+import pistomp.footswitch as Footswitch
+import pistomp.hardware as hardware
+import pistomp.relay as Relay
 
-from .lcdili9341 import Lcd
+import pistomp.lcdili9341 as Lcd
 
 # import pistomp.lcd128x64 as Lcd
 # import pistomp.lcd135x240 as Lcd
@@ -50,11 +52,11 @@ RELAY_SET_PIN = 12
 DEBOUNCE_MAP = {0: 27, 1: 23, 2: 22, 3: 24, 4: 25}
 
 
-class Pistompcore(Hardware):
+class Pistompcore(hardware.Hardware):
     __single = None
 
     def __init__(self, cfg, mod, midiout, refresh_callback):
-        super().__init__(cfg, mod, midiout, refresh_callback)
+        super(Pistompcore, self).__init__(cfg, mod, midiout, refresh_callback)
         if Pistompcore.__single:
             raise Pistompcore.__single
         Pistompcore.__single = self
@@ -80,18 +82,18 @@ class Pistompcore(Hardware):
         self.reinit(None)
 
     def init_lcd(self):
-        self.mod.add_lcd(Lcd(self.mod.homedir))
+        self.mod.add_lcd(Lcd.Lcd(self.mod.homedir))
 
     def init_encoders(self):
-        top_enc = Encoder(
+        top_enc = Encoder.Encoder(
             TOP_ENC_PIN_D, TOP_ENC_PIN_CLK, callback=self.mod.universal_encoder_select
         )
         self.encoders.append(top_enc)
-        enc_sw = EncoderSwitch(1, callback=self.mod.universal_encoder_sw)
+        enc_sw = EncoderSwitch.EncoderSwitch(1, callback=self.mod.universal_encoder_sw)
         self.encoder_switches.append(enc_sw)
 
     def init_relays(self):
-        self.relay = Relay(RELAY_SET_PIN, RELAY_RESET_PIN)
+        self.relay = Relay.Relay(RELAY_SET_PIN, RELAY_RESET_PIN)
 
     def init_analog_controls(self):
         cfg = self.default_cfg.copy()

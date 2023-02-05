@@ -17,10 +17,10 @@ import board
 import digitalio
 from PIL import Image, ImageDraw, ImageFont
 import adafruit_rgb_display.ili9341 as ili9341
-from .util import constants as Token
+import common.token as Token
 import os
 import pistomp.lcdcolor as lcdcolor
-from .tool import Tool
+import pistomp.tool as Tool
 import time
 
 # The code in this file should generally be specific to initializing a specific display and rendering (and refreshing)
@@ -293,17 +293,17 @@ class Lcd(lcdcolor.Lcdcolor):
         self.erase_zone(self.ZONE_TOOLS)
         tools = []
         if self.tool_wifi is None:
-            self.tool_wifi = Tool(
+            self.tool_wifi = Tool.Tool(
                 wifi_type, 240, 1, os.path.join(self.imagedir, "wifi_gray.png")
             )
             tools.append(self.tool_wifi)
         if self.tool_bypass is None:
-            self.tool_bypass = Tool(
+            self.tool_bypass = Tool.Tool(
                 bypass_type, 270, 1, os.path.join(self.imagedir, "power_gray.png")
             )
             tools.append(self.tool_bypass)
         if self.tool_system is None:
-            self.tool_system = Tool(
+            self.tool_system = Tool.Tool(
                 system_type, 296, 1, os.path.join(self.imagedir, "wrench_silver.png")
             )
             tools.append(self.tool_system)

@@ -16,8 +16,9 @@
 from PIL import Image
 import os
 import pistomp.lcdbase as lcdbase
-from .util import constants as Token
-from .util import common as util
+import pistomp.tool as Tool
+import common.token as Token
+import common.util as util
 
 
 class Lcdcolor(lcdbase.Lcdbase):

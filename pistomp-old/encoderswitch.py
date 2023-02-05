@@ -14,13 +14,21 @@
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
 
 from enum import Enum
+
+import pistomp.gpioswitch as gpioswitch
 import time
 
-from .gpioswitch import GpioSwitch
-from .util.mode import SwitchValue
+
+class Value(Enum):
+    DEFAULT = 0
+    PRESSED = 1
+    RELEASED = 2
+    LONGPRESSED = 3
+    CLICKED = 4
+    DOUBLECLICKED = 5
 
 
-class EncoderSwitch(GpioSwitch):
+class EncoderSwitch(gpioswitch.GpioSwitch):
     def __init__(self, gpio, callback):
         super(EncoderSwitch, self).__init__(gpio, None, None)
         self.last_read = None  # this keeps track of the last value
@@ -31,4 +39,4 @@ class EncoderSwitch(GpioSwitch):
 
     # Override of base class method
     def pressed(self, short):
-        self.callback(SwitchValue.RELEASED if short else SwitchValue.LONGPRESSED)
+        self.callback(Value.RELEASED if short else Value.LONGPRESSED)
