@@ -405,7 +405,7 @@ class Mod(Host):
             logging.info("Loading pedalboard info: %s" % pb[Token.TITLE])
             bundle = pb[Token.BUNDLE]
             title = pb[Token.TITLE]
-            pedalboard = Pedalboard.Pedalboard(title, bundle)
+            pedalboard = Pedalboard(title, bundle)
             pedalboard.load_bundle(bundle, self.plugin_dict)
             self.pedalboards[bundle] = pedalboard
             self.pedalboard_list.append(pedalboard)
