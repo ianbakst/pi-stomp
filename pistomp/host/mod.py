@@ -16,11 +16,16 @@
 import json
 import logging
 import os
+from pathlib import Path
 import requests as req
 import subprocess
 import sys
 import yaml
 
+from .host import Host
+from pistomp.analogmidicontrol import AnalogMidiControl
+from pistomp.effects import Parameter, Pedalboard
+from pistomp.footswitch import Footswitch
 from pistomp.util import constants as Token
 from pistomp.util import common as util
 from pistomp.util.mode import (
@@ -31,17 +36,7 @@ from pistomp.util.mode import (
     SelectedType,
     SwitchValue,
 )
-
-from pistomp.effects import Parameter, Pedalboard
 from pistomp.wifi import WiFiManager
-
-from pistomp.analogmidicontrol import AnalogMidiControl
-from pistomp.footswitch import Footswitch
-from .host import Host
-from pathlib import Path
-
-# sys.path.append('/usr/lib/python3.5/site-packages')  # TODO possibly /usr/local/modep/mod-ui
-# from mod.development import FakeHost as Host
 
 
 class Mod(Host):
