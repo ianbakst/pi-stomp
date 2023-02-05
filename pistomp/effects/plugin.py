@@ -14,11 +14,11 @@
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
-from .footswitch import Footswitch
+from pistomp.footswitch import Footswitch
 
 
 class Plugin:
-    def __init__(self, instance_id, parameters, info, category=None):
+    def __init__(self, instance_id, parameters: dict, info, category=None):
 
         self.instance_id = instance_id
         self.parameters = parameters

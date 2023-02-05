@@ -22,10 +22,10 @@ import requests as req
 import sys
 import urllib.parse
 
-from .util import constants as Token
-from .util import common as util
+from pistomp.util import constants as Token
+from pistomp.util import common as util
 from .parameter import Parameter
-from . import plugin as Plugin
+from .plugin import Plugin
 
 
 class Pedalboard:
@@ -237,7 +237,7 @@ class Pedalboard:
                             parameters[symbol] = param
 
                     # logging.debug("  Label: %s" % label)
-            inst = Plugin.Plugin(instance_id, parameters, plugin_info, category)
+            inst = Plugin(instance_id, parameters, plugin_info, category)
 
             try:
                 index = plugin_order.index(block)

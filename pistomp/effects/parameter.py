@@ -14,20 +14,20 @@
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
-from .util import constants as Token
-from .util import common as util
+from pistomp.util import constants
+from pistomp.util import common as util
 
 
 class Parameter:
     def __init__(self, plugin_info, value, binding):
         self.name = util.DICT_GET(
-            plugin_info, Token.SHORTNAME
+            plugin_info, constants.SHORTNAME
         )  # possibly use name if shortName is None
         if self.name is None:
-            self.name = util.DICT_GET(plugin_info, Token.NAME)
-        self.symbol = util.DICT_GET(plugin_info, Token.SYMBOL)
-        self.minimum = util.DICT_GET(util.DICT_GET(plugin_info, Token.RANGES), Token.MINIMUM)
-        self.maximum = util.DICT_GET(util.DICT_GET(plugin_info, Token.RANGES), Token.MAXIMUM)
+            self.name = util.DICT_GET(plugin_info, constants.NAME)
+        self.symbol = util.DICT_GET(plugin_info, constants.SYMBOL)
+        self.minimum = util.DICT_GET(util.DICT_GET(plugin_info, constants.RANGES), constants.MINIMUM)
+        self.maximum = util.DICT_GET(util.DICT_GET(plugin_info, constants.RANGES), constants.MAXIMUM)
         self.value = value
         self.binding = binding
 
