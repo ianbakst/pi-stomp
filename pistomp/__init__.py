@@ -4,6 +4,7 @@ from . import analogswitch
 from . import audiocard
 from . import config
 from . import controller
+from . import effects
 from . import encoder
 from . import encoderswitch
 from . import footswitch
@@ -12,9 +13,6 @@ from . import hardware
 from . import host
 from . import lcd
 from . import modalapistomp
-from . import parameter
-from . import pedalboard
-from . import plugin
 from . import relay
 from . import tool
 from . import util
@@ -28,6 +26,7 @@ __all__ = [
     "audiocard",
     "config",
     "controller",
+    "effects",
     "encoder",
     "encoderswitch",
     "footswitch",
@@ -36,9 +35,6 @@ __all__ = [
     "host",
     "lcd",
     "modalapistomp",
-    "parameter",
-    "pedalboard",
-    "plugin",
     "relay",
     "tool",
     "util",

@@ -32,8 +32,7 @@ from pistomp.util.mode import (
     SwitchValue,
 )
 
-from pistomp.pedalboard import Pedalboard
-from pistomp.parameter import Parameter
+from pistomp.effects import Parameter, Pedalboard
 from pistomp.wifi import WiFiManager
 
 from pistomp.analogmidicontrol import AnalogMidiControl
