@@ -17,10 +17,10 @@ import board
 import digitalio
 from PIL import Image, ImageDraw, ImageFont
 import adafruit_rgb_display.ili9341 as ili9341
-from .util import constants as Token
+from pistomp.util import constants as Token
 import os
-import pistomp.lcdcolor as lcdcolor
-from .tool import Tool
+from .lcdcolor import LCDColor
+from pistomp.tool import Tool
 import time
 
 # The code in this file should generally be specific to initializing a specific display and rendering (and refreshing)
@@ -28,9 +28,9 @@ import time
 # All __init__ parameters from the lcdbase.py should be specified in this __init__
 
 
-class Lcd(lcdcolor.Lcdcolor):
+class ILI9341(LCDColor):
     def __init__(self, cwd):
-        super(Lcd, self).__init__(cwd)
+        super().__init__(cwd)
 
         # Pin Configuration
         self.cs_pin = digitalio.DigitalInOut(board.CE0)
@@ -227,7 +227,7 @@ class Lcd(lcdcolor.Lcdcolor):
         y = 0
         menu_list = list(sorted(menu_items))
         for i in menu_list:
-            if idx is 0:
+            if idx == 0:
                 self.menu_draw.text(
                     (x, y), "%s" % menu_items[i][Token.NAME], self.foreground, self.small_font
                 )
@@ -293,9 +293,7 @@ class Lcd(lcdcolor.Lcdcolor):
         self.erase_zone(self.ZONE_TOOLS)
         tools = []
         if self.tool_wifi is None:
-            self.tool_wifi = Tool(
-                wifi_type, 240, 1, os.path.join(self.imagedir, "wifi_gray.png")
-            )
+            self.tool_wifi = Tool(wifi_type, 240, 1, os.path.join(self.imagedir, "wifi_gray.png"))
             tools.append(self.tool_wifi)
         if self.tool_bypass is None:
             self.tool_bypass = Tool(

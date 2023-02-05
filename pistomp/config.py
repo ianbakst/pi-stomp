@@ -12,19 +12,17 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
-from .gpioswitch import GpioSwitch
-from .util.mode import SwitchValue
+
+from os.path import dirname, join, realpath
+from typing import Optional
+import yaml
+
+DEFAULT_CONFIG_FILE = "default_config.yml"
 
 
-class EncoderSwitch(GpioSwitch):
-    def __init__(self, gpio, callback):
-        super(EncoderSwitch, self).__init__(gpio, None, None)
-        self.last_read = None  # this keeps track of the last value
-        self.trigger_count = 0
-        self.callback = callback
-        self.longpress_state = False
-        self.gpio = gpio
-
-    # Override of base class method
-    def pressed(self, short):
-        self.callback(SwitchValue.RELEASED if short else SwitchValue.LONGPRESSED)
+def load_cfg(file_name: Optional[str] = None) -> dict:
+    # Read the default config file - should only need to read once per session
+    if file_name is None:
+        file_name = join(dirname(realpath(__file__)), DEFAULT_CONFIG_FILE)
+    with open(file_name, "r") as f:
+        return yaml.load(f, Loader=yaml.SafeLoader)

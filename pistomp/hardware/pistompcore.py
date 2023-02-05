@@ -23,15 +23,12 @@
 
 import RPi.GPIO as GPIO
 
-import common.token as Token
-import common.util as Util
-
 from .encoder import Encoder
 from .encoderswitch import EncoderSwitch
 from .hardware import Hardware
 from .relay import Relay
 
-from .lcdili9341 import Lcd
+from .lcd.ili9341 import ILI9341
 
 # import pistomp.lcd128x64 as Lcd
 # import pistomp.lcd135x240 as Lcd
@@ -80,7 +77,7 @@ class Pistompcore(Hardware):
         self.reinit(None)
 
     def init_lcd(self):
-        self.mod.add_lcd(Lcd(self.mod.homedir))
+        self.mod.add_lcd(ILI9341(self.mod.homedir))
 
     def init_encoders(self):
         top_enc = Encoder(

@@ -1,20 +1,3 @@
-#!/usr/bin/env python3
-
-# This file is part of pi-stomp.
-#
-# pi-stomp is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# pi-stomp is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
-import argparse
 import logging
 import os
 import RPi.GPIO as GPIO
@@ -23,17 +6,20 @@ import time
 
 from rtmidi.midiutil import open_midioutput
 
-from . import mod as Mod
+from . import host as host
 from . import audiocard as ac
-from .hardwarefactory import Hardwarefactory
+from . import hardware
+import pistomp
 
 
-def main(log: str = 'INFO', host: str = 'mod'):
-    print("Log level now set to: %s" % logging.getLevelName(log))
-    logging.basicConfig(level=log)
+def main_loop(log: str, host_type: str) -> None:
+    if log is not None:
+        print("Log level now set to: %s" % logging.getLevelName(log.upper()))
+        logging.basicConfig(level=log.upper())
 
     # Current Working Dir
     cwd = os.path.dirname(os.path.realpath(__file__))
+    cfg = pistomp.config.load_cfg()
 
     # Audio Card Config - doing this early so audio passes ASAP
     audiocard = ac.Factory().create(cwd)
@@ -53,15 +39,15 @@ def main(log: str = 'INFO', host: str = 'mod'):
         sys.exit()
 
     # Hardware and handler objects
-    hw = None
     handler = None
 
-    if args.host == "mod":
+    if host_type == "mod":
+
         # Create singleton Mod handler
-        handler = Mod.Mod(audiocard, cwd)
+        handler = host.Factory().create(audiocard, cwd)
 
         # Initialize hardware (Footswitches, Encoders, Analog inputs, etc.)
-        hw = Hardwarefactory().create(handler, midiout)
+        hw = hardware.Factory().create(cfg, handler, midiout)
         handler.add_hardware(hw)
 
         # Load all pedalboard info from the lilv ttl file
@@ -77,6 +63,26 @@ def main(log: str = 'INFO', host: str = 'mod'):
 
         # Load system info.  This can take a few seconds
         handler.system_info_load()
+    #
+    # elif args.host[0] == "generic":
+    #     # No specific plugin host specified, so use a generic handler
+    #     # Encoders and LCD not mapped without specific purpose
+    #     # Just initialize the control hardware (footswitches, analog controls, etc.) for use as MIDI controls
+    #     handler = Generichost.Generichost(homedir=cwd)
+    #     factory = Hardwarefactory.Hardwarefactory()
+    #     hw = factory.create(handler, midiout)
+    #     handler.add_hardware(hw)
+    #
+    # elif args.host[0] == "test":
+    #     handler = Testhost.Testhost(audiocard, homedir=cwd)
+    #     try:
+    #         factory = Hardwarefactory.Hardwarefactory()
+    #         hw = factory.create(handler, midiout)
+    #         handler.add_hardware(hw)
+    #     except:
+    #         handler.cleanup()
+    #         raise
+
     logging.info("Entering main loop. Press Control-C to exit.")
     period = 0
     try:
@@ -103,27 +109,3 @@ def main(log: str = 'INFO', host: str = 'mod'):
         GPIO.cleanup()
         del handler
         logging.info("Completed cleanup")
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--log",
-        "-l",
-        nargs="+",
-        help="Provide logging level. Example --log debug'",
-        default="INFO",
-        choices=["debug", "info", "warning", "error", "critical"],
-        dest='log',
-    )
-    parser.add_argument(
-        "--host",
-        "-h",
-        help="Plugin host to use. Example --host mod'",
-        default="mod",
-        choices=["mod", "generic", "test"],
-        dest='host',
-    )
-
-    args = parser.parse_args()
-    main(args.log, args.host)

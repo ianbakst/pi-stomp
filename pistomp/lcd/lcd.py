@@ -16,7 +16,8 @@
 from abc import ABC, abstractmethod
 
 
-class Lcd(ABC):
+class LCD(ABC):
+    @abstractmethod
     def __init__(self, cwd):
         # expects cwd (current working directory)
         pass

@@ -12,19 +12,22 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
-from .gpioswitch import GpioSwitch
-from .util.mode import SwitchValue
+from typing import Optional
+from pistomp.util import constants
+
+from .pistompcore import Pistompcore
+from .hardware import Hardware
 
 
-class EncoderSwitch(GpioSwitch):
-    def __init__(self, gpio, callback):
-        super(EncoderSwitch, self).__init__(gpio, None, None)
-        self.last_read = None  # this keeps track of the last value
-        self.trigger_count = 0
-        self.callback = callback
-        self.longpress_state = False
-        self.gpio = gpio
+class Factory:
+    __exists: bool = False
 
-    # Override of base class method
-    def pressed(self, short):
-        self.callback(SwitchValue.RELEASED if short else SwitchValue.LONGPRESSED)
+    @staticmethod
+    def create(cfg, handler, midiout) -> Optional[Hardware]:
+        version = cfg.get(constants.HARDWARE, {}).get(constants.VERSION)
+        if version < 2.0:
+            return
+        elif (version >= 2.0) and (version < 3.0):
+            hw = Pistompcore(cfg, handler, midiout, refresh_callback=handler.update_lcd_fs)
+            Factory.__exists = True
+            return hw

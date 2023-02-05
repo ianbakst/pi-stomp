@@ -15,7 +15,6 @@
 
 import logging
 import RPi.GPIO as GPIO
-from rtmidi.midiconstants import CONTROL_CHANGE
 
 from .controller import Controller
 import time

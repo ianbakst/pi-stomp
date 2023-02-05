@@ -16,8 +16,6 @@
 import RPi.GPIO as GPIO
 import threading
 
-from functools import partial
-
 
 class Encoder:
     def _process_gpios(self):

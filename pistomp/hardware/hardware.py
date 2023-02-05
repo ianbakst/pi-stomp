@@ -18,10 +18,10 @@ import logging
 import os
 import spidev
 
-from .util import constants as Token
-from .util import common as Util
-from .analogmidicontrol import AnalogMidiControl
-from .footswitch import Footswitch
+from pistomp.util import constants as Token
+from pistomp.util import common as Util
+from pistomp.analogmidicontrol import AnalogMidiControl
+from pistomp.footswitch import Footswitch
 
 
 class Hardware:
@@ -251,10 +251,16 @@ class Hardware:
                     if f[action] == Token.PRESET:
                         preset_value = f.get(f"{action}-{Token.PRESET}")
                         if preset_value == Token.UP:
-                            fs.add_preset(callback=self.mod.preset_incr_and_change, short=(action == Token.SHORT))
+                            fs.add_preset(
+                                callback=self.mod.preset_incr_and_change,
+                                short=(action == Token.SHORT),
+                            )
                             fs.set_display_label("Pre+")
                         elif preset_value == Token.DOWN:
-                            fs.add_preset(callback=self.mod.preset_decr_and_change, short=(action == Token.SHORT))
+                            fs.add_preset(
+                                callback=self.mod.preset_decr_and_change,
+                                short=(action == Token.SHORT),
+                            )
                             fs.set_display_label("Pre-")
                         elif isinstance(preset_value, int):
                             fs.add_preset(
@@ -275,7 +281,9 @@ class Hardware:
                             fs.set_midi_channel(self.midi_channel)
                             fs.set_midi_CC(cc)
                             key = format("%d:%d" % (self.midi_channel, fs.midi_CC))
-                            self.controllers[key] = fs  # TODO problem if this creates a new element?
+                            self.controllers[
+                                key
+                            ] = fs  # TODO problem if this creates a new element?
                 # LCD attributes
                 if Token.COLOR in f:
                     fs.set_lcd_color(f[Token.COLOR])

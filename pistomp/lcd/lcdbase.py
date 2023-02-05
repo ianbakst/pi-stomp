@@ -16,8 +16,8 @@
 
 import logging
 import os
-import common.util as util
-import pistomp.lcd as abstract_lcd
+from pistomp.util import common as util
+from .lcd import LCD
 from PIL import ImageColor
 
 from pistomp.footswitch import (
@@ -25,11 +25,9 @@ from pistomp.footswitch import (
 )  # TODO would like to avoid this module knowing such details
 
 
-class Lcdbase(abstract_lcd.Lcd):
+class LCDBase(LCD):
     def __init__(self, cwd):
-
         # The following parameters need to be specified by the concrete subclass
-
         # Fonts
         self.title_font = None
         self.splash_font = None
@@ -154,8 +152,7 @@ class Lcdbase(abstract_lcd.Lcd):
                 text_color = self.background
         draw.text((x0, y), pedalboard, text_color, font)
 
-        if preset != None:
-
+        if preset is not None:
             # delimiter
             delimiter = "/"
             x = x0 + pb_size + 1
@@ -173,7 +170,6 @@ class Lcdbase(abstract_lcd.Lcd):
             draw.text((x, y), preset, text_color, font)
 
     def base_draw_bound_plugins(self, zone, plugins, footswitches):
-        bypass_label = "byps"
         fss = footswitches.copy()
         for p in plugins:
             if p.has_footswitch is False:

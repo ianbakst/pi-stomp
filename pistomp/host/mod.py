@@ -19,23 +19,26 @@ import os
 import requests as req
 import subprocess
 import sys
-import time
 import yaml
 
-from .util import constants as Token
-from .util import common as util
-from .util.mode import (
-    TopEncoderMode, BotEncoderMode, UniversalEncoderMode, MenuType, SelectedType, SwitchValue
+from pistomp.util import constants as Token
+from pistomp.util import common as util
+from pistomp.util.mode import (
+    TopEncoderMode,
+    BotEncoderMode,
+    UniversalEncoderMode,
+    MenuType,
+    SelectedType,
+    SwitchValue,
 )
-from .analogswitch import AnalogSwitch
-from .encoderswitch import EncoderSwitch
-import modalapi.pedalboard as Pedalboard
-import modalapi.parameter as Parameter
-from .wifi import WiFiManager
 
-from .analogmidicontrol import AnalogMidiControl
-from .footswitch import Footswitch
-from .handler import Host
+from pistomp.pedalboard import Pedalboard
+from pistomp.parameter import Parameter
+from pistomp.wifi import WiFiManager
+
+from pistomp.analogmidicontrol import AnalogMidiControl
+from pistomp.footswitch import Footswitch
+from .host import Host
 from pathlib import Path
 
 # sys.path.append('/usr/lib/python3.5/site-packages')  # TODO possibly /usr/local/modep/mod-ui
@@ -43,16 +46,10 @@ from pathlib import Path
 
 
 class Mod(Host):
-    __single = None
-
     def __init__(self, audiocard, homedir):
+        super().__init__()
         self.wifi_manager = None
-
         logging.info("Init mod")
-        if Mod.__single:
-            raise Mod.__single
-        Mod.__single = self
-
         self.audiocard = audiocard
         self.lcd = None
         self.homedir = homedir

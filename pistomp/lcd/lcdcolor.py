@@ -12,17 +12,15 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
-
-from PIL import Image
 import os
-import pistomp.lcdbase as lcdbase
-from .util import constants as Token
-from .util import common as util
+from .lcdbase import LCDBase
+from pistomp.util import constants as Token
+from pistomp.util import common as util
 
 
-class Lcdcolor(lcdbase.Lcdbase):
+class LCDColor(LCDBase):
     def __init__(self, cwd):
-        super(Lcdcolor, self).__init__(cwd)
+        super().__init__(cwd)
 
         self.category_color_map = {
             "Delay": "MediumVioletRed",

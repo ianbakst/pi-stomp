@@ -12,6 +12,7 @@ __all__ = [
 
 SYSTEM_CARD_FILE = Path("/proc/asound/cards")
 
+
 class Factory:
     __exists: bool = False
 
@@ -19,7 +20,7 @@ class Factory:
     def get_current_card():
         if SYSTEM_CARD_FILE.exists() is False:
             return
-        with open(SYSTEM_CARD_FILE, 'r') as f:
+        with open(SYSTEM_CARD_FILE, "r") as f:
             for line in f.readlines():
                 strs = line.split()
                 if len(strs) > 2 and strs[0] == "0":

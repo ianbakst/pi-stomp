@@ -66,15 +66,16 @@ class WiFiManager:
                 line = f.readline()
                 f.close()
                 return line.startswith("up")
-        except Exception as e:
+        except Exception:
             return False
 
-    def _is_hotspot_active(self):
+    @staticmethod
+    def _is_hotspot_active() -> bool:
         try:
             subprocess.check_output(
                 ["systemctl", "is-active", "wifi-hotspot", "--quiet"]
             ).strip().decode("utf-8")
-        except:
+        except Exception:
             return False
         return True
 
@@ -86,7 +87,7 @@ class WiFiManager:
                 .decode("utf-8")
             )
             for i in text_out.split("\n"):
-                if len(i) is 0:
+                if len(i) == 0:
                     continue
                 (key, value) = i.split("=")
                 if key and value:

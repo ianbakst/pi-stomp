@@ -15,7 +15,7 @@
 
 from rtmidi.midiconstants import CONTROL_CHANGE
 
-import common.util as util
+from pistomp.util import common as util
 from .analogcontrol import AnalogControl
 
 import logging
@@ -23,7 +23,17 @@ from typing import Optional
 
 
 class AnalogMidiControl(AnalogControl):
-    def __init__(self, spi, adc_channel, tolerance, midi_CC, midi_channel, midiout, type, cfg: Optional[dict] = None):
+    def __init__(
+        self,
+        spi,
+        adc_channel,
+        tolerance,
+        midi_CC,
+        midi_channel,
+        midiout,
+        type,
+        cfg: Optional[dict] = None,
+    ):
         super().__init__(spi, adc_channel, tolerance)
         self.midi_CC = midi_CC
         self.midiout = midiout
