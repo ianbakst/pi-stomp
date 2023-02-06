@@ -39,7 +39,6 @@ TOP_ENC_PIN_D = 17
 TOP_ENC_PIN_CLK = 4
 TOP_ENC_SWITCH_CHANNEL = 7
 ENC_SW_THRESHOLD = 512
-
 RELAY_RESET_PIN = 16
 RELAY_SET_PIN = 12
 
@@ -48,32 +47,18 @@ DEBOUNCE_MAP = {0: 27, 1: 23, 2: 22, 3: 24, 4: 25}
 
 
 class Pistompcore(Hardware):
-    __single = None
-
     def __init__(self, cfg, mod, midiout, refresh_callback):
         super().__init__(cfg, mod, midiout, refresh_callback)
-        if Pistompcore.__single:
-            raise Pistompcore.__single
-        Pistompcore.__single = self
-
         self.mod = mod
         self.midiout = midiout
         self.debounce_map = DEBOUNCE_MAP
-
         GPIO.setmode(GPIO.BCM)
-
         self.init_spi()
-
         self.init_lcd()
-
         self.init_relays()
-
         self.init_encoders()
-
         self.init_footswitches()
-
         self.init_analog_controls()
-
         self.reinit(None)
 
     def init_lcd(self):

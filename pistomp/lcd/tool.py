@@ -12,22 +12,18 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
-import json
-import logging
+from typing import Optional
+
+from PIL import Image
 
 
-class Controller:
-    def __init__(self, midi_channel, midi_CC):
-        self.midi_channel = midi_channel
-        self.midi_CC = midi_CC
-        self.minimum = None
-        self.maximum = None
-        self.parameter = None
-        self.hardware_name = None
-        self.type = None
+class Tool:
+    def __init__(self, tool_type, x, y, img_path: Optional[str] = None):
+        self.tool_type = tool_type
+        self.x = x
+        self.y = y
+        self.image = None
+        self.update_img(img_path)
 
-    def to_json(self):
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
-
-    def set_value(self, value):
-        logging.error("Controller subclass hasn't overriden the set_value method")
+    def update_img(self, img_path: Optional[str]):
+        self.image = None if img_path is None else Image.open(img_path)

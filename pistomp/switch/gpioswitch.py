@@ -12,30 +12,41 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
-
+import json
 import logging
+import queue
+import time
+
 import RPi.GPIO as GPIO
 
-from .controller import Controller
-import time
-import queue
 
-
-class GpioSwitch(Controller):
-    def __init__(self, fs_pin, midi_channel, midi_CC):
-        super().__init__(midi_channel, midi_CC)
-        self.fs_pin = fs_pin
+class GpioSwitch:
+    def __init__(self, pin: int, midi_channel, midi_CC):
+        self.midi_channel = midi_channel
+        self.midi_CC = midi_CC
+        self.minimum = None
+        self.maximum = None
+        self.parameter = None
+        self.hardware_name = None
+        self.type = None
+        self.fs_pin = pin
         self.cur_tstamp = None
         self.events = queue.Queue()
 
         # Long press threshold in seconds
         self.long_press_threshold = 0.5
 
-        GPIO.setup(fs_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.add_event_detect(fs_pin, GPIO.FALLING, callback=self._gpio_down, bouncetime=250)
+        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.add_event_detect(pin, GPIO.FALLING, callback=self._gpio_down, bouncetime=250)
 
     def __del__(self):
         GPIO.remove_event_detect(self.fs_pin)
+
+    def to_json(self):
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+
+    def set_value(self, value):
+        pass
 
     def _gpio_down(self, gpio):
         # This is run from a separate thread, timestamp pressed and queue an event

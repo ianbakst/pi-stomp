@@ -13,12 +13,12 @@
 # You should have received a copy of the GNU General Public License
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
 from .gpioswitch import GpioSwitch
-from .util.mode import SwitchValue
+from pistomp.util.mode import SwitchValue
 
 
 class EncoderSwitch(GpioSwitch):
     def __init__(self, gpio, callback):
-        super(EncoderSwitch, self).__init__(gpio, None, None)
+        super().__init__(gpio, None, None)
         self.last_read = None  # this keeps track of the last value
         self.trigger_count = 0
         self.callback = callback

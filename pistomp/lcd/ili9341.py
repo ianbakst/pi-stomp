@@ -20,7 +20,7 @@ import adafruit_rgb_display.ili9341 as ili9341
 from pistomp.util import constants as Token
 import os
 from .lcdcolor import LCDColor
-from pistomp.tool import Tool
+from .tool import Tool
 import time
 
 # The code in this file should generally be specific to initializing a specific display and rendering (and refreshing)
@@ -39,7 +39,7 @@ class ILI9341(LCDColor):
 
         # Config for display baudrate (default max is 24mhz)
         # Should agree with the SPI rate used in hardware.py for the ADC
-        self.baudrate = 24000000
+        self.baudrate = 24_000_000
 
         # Init SPI and display
         self.spi = None

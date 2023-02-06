@@ -26,8 +26,12 @@ class Parameter:
         if self.name is None:
             self.name = util.DICT_GET(plugin_info, constants.NAME)
         self.symbol = util.DICT_GET(plugin_info, constants.SYMBOL)
-        self.minimum = util.DICT_GET(util.DICT_GET(plugin_info, constants.RANGES), constants.MINIMUM)
-        self.maximum = util.DICT_GET(util.DICT_GET(plugin_info, constants.RANGES), constants.MAXIMUM)
+        self.minimum = util.DICT_GET(
+            util.DICT_GET(plugin_info, constants.RANGES), constants.MINIMUM
+        )
+        self.maximum = util.DICT_GET(
+            util.DICT_GET(plugin_info, constants.RANGES), constants.MAXIMUM
+        )
         self.value = value
         self.binding = binding
 
