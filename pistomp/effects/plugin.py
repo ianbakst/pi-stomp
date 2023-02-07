@@ -14,7 +14,7 @@
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
-from pistomp.footswitch import Footswitch
+from pistomp.switch.footswitch import Footswitch
 
 
 class Plugin:
