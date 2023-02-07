@@ -15,12 +15,12 @@
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-import os
+import pkg_resources
 from pistomp.util import common as util
 from .lcd import LCD
 from PIL import ImageColor
 
-from pistomp.footswitch import (
+from pistomp.switch.footswitch import (
     Footswitch,
 )  # TODO would like to avoid this module knowing such details
 
@@ -65,7 +65,7 @@ class LCDBase(LCD):
         # Toolbar
         self.supports_toolbar = None
         self.tools = []
-        self.imagedir = os.path.join(cwd, "images")
+        self.imagedir = pkg_resources.resource_dir()
         self.tool_wifi = None
         self.tool_bypass = None
         self.tool_system = None

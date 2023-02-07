@@ -14,7 +14,7 @@
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
 import os
 from .lcdbase import LCDBase
-from pistomp.util import constants as Token
+from pistomp.util import constants
 from pistomp.util import common as util
 
 
@@ -168,17 +168,17 @@ class LCDColor(LCDBase):
 
         x = 0
         for k, v in controllers.items():
-            control_type = util.DICT_GET(v, Token.TYPE)
-            color = util.DICT_GET(v, Token.COLOR)
+            control_type = util.DICT_GET(v, constants.TYPE)
+            color = util.DICT_GET(v, constants.COLOR)
             if color is None:
                 # color not specified for control in config file
-                category = util.DICT_GET(v, Token.CATEGORY)
+                category = util.DICT_GET(v, constants.CATEGORY)
                 color = self.get_category_color(category)
             name = k.split(":")[1]
             n = self.shorten_name(name, text_per_control)
-            if control_type == Token.KNOB:
+            if control_type == constants.KNOB:
                 self.draw_knob(n, x, color)
-            if control_type == Token.EXPRESSION:
+            if control_type == constants.EXPRESSION:
                 self.draw_pedal(n, x, color)
             x += width_per_control
 
