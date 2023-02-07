@@ -24,7 +24,7 @@
 import RPi.GPIO as GPIO
 
 from pistomp.encoder import Encoder
-from pistomp.encoderswitch import EncoderSwitch
+from pistomp.switch.encoderswitch import EncoderSwitch
 from .hardware import Hardware
 from pistomp.relay import Relay
 
