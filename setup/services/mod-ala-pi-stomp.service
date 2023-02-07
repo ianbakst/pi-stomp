@@ -4,9 +4,9 @@ After=mod-ui.service
 Requires=mod-ui.service
 
 [Service]
-ExecStart=/usr/bin/python3 /home/pistomp/pi-stomp/modalapistomp.py
+ExecStart=/usr/bin/python3 -m pistomp
 Restart=always
-RestartSec=2
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
