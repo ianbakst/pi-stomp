@@ -25,7 +25,7 @@ import yaml
 from .host import Host
 from pistomp.analogmidicontrol import AnalogMidiControl
 from pistomp.effects import Parameter, Pedalboard
-from pistomp.footswitch import Footswitch
+from pistomp.switch.footswitch import Footswitch
 from pistomp.util import constants as Token
 from pistomp.util import common as util
 from pistomp.util.mode import (
