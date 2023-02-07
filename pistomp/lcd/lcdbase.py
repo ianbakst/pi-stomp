@@ -65,7 +65,7 @@ class LCDBase(LCD):
         # Toolbar
         self.supports_toolbar = None
         self.tools = []
-        self.imagedir = pkg_resources.resource_dir()
+        self.imagedir = pkg_resources.resource_dir('')
         self.tool_wifi = None
         self.tool_bypass = None
         self.tool_system = None
