@@ -21,7 +21,7 @@ import spidev
 from pistomp.util import constants as Token
 from pistomp.util import common as Util
 from pistomp.analogmidicontrol import AnalogMidiControl
-from pistomp.footswitch import Footswitch
+from pistomp.switch.footswitch import Footswitch
 
 
 class Hardware:
