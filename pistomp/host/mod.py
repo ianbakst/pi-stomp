@@ -40,6 +40,7 @@ from pistomp.wifi import WiFiManager
 
 CWD = os.getcwd()
 
+
 class Mod(Host):
     def __init__(self, audiocard):
         super().__init__()

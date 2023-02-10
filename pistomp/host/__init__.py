@@ -7,8 +7,6 @@ from pistomp.audiocard import AudioCard
 
 __all__ = ["Factory", "Host", "Mod"]
 
-CWD = getcwd()
-
 
 class HostExistsError(Exception):
     pass
@@ -21,6 +19,6 @@ class Factory:
     def create(audio_card: AudioCard):
         if Factory.__exists:
             raise HostExistsError
-        h = Mod(audio_card, CWD)
+        h = Mod(audio_card)
         Factory.__exists = True
         return h
