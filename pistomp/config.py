@@ -13,16 +13,19 @@
 # You should have received a copy of the GNU General Public License
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
 
-from os.path import dirname, join, realpath
+from os import getcwd
+from os.path import join
 from typing import Optional
 import yaml
 
+
+DEFAULT_CONFIG_DIR = getcwd() + 'conf'
 DEFAULT_CONFIG_FILE = "default_config.yml"
 
 
 def load_cfg(file_name: Optional[str] = None) -> dict:
     # Read the default config file - should only need to read once per session
     if file_name is None:
-        file_name = join(dirname(realpath(__file__)), DEFAULT_CONFIG_FILE)
+        file_name = join(DEFAULT_CONFIG_DIR, DEFAULT_CONFIG_FILE)
     with open(file_name, "r") as f:
         return yaml.load(f, Loader=yaml.SafeLoader)
