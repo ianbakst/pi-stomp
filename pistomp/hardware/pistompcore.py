@@ -20,6 +20,7 @@
 # 2 Encoders with switches
 #
 # A new version with different controls should have a new separate subclass
+from os import getcwd
 
 import RPi.GPIO as GPIO
 
@@ -45,6 +46,8 @@ RELAY_SET_PIN = 12
 # Map of Debounce chip pin (user friendly) to GPIO (code friendly)
 DEBOUNCE_MAP = {0: 27, 1: 23, 2: 22, 3: 24, 4: 25}
 
+CWD = getcwd()
+
 
 class Pistompcore(Hardware):
     def __init__(self, cfg, mod, midiout, refresh_callback):
@@ -62,7 +65,7 @@ class Pistompcore(Hardware):
         self.reinit(None)
 
     def init_lcd(self):
-        self.mod.add_lcd(ILI9341(self.mod.homedir))
+        self.mod.add_lcd(ILI9341(CWD))
 
     def init_encoders(self):
         top_enc = Encoder(
