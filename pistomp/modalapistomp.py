@@ -18,11 +18,10 @@ def main_loop(log: str, host_type: str) -> None:
         logging.basicConfig(level=log.upper())
 
     # Current Working Dir
-    cwd = os.path.dirname(os.path.realpath(__file__))
     cfg = pistomp.config.load_cfg()
 
     # Audio Card Config - doing this early so audio passes ASAP
-    audiocard = ac.Factory().create(cwd)
+    audiocard = ac.Factory().create()
     audiocard.restore()
 
     # MIDI initialization
@@ -44,7 +43,7 @@ def main_loop(log: str, host_type: str) -> None:
     if host_type == "mod":
 
         # Create singleton Mod handler
-        handler = host.Factory().create(audiocard, cwd)
+        handler = host.Factory().create(audiocard)
 
         # Initialize hardware (Footswitches, Encoders, Analog inputs, etc.)
         hw = hardware.Factory().create(cfg, handler, midiout)

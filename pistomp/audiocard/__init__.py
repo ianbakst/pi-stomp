@@ -1,4 +1,5 @@
 from pathlib import Path
+from os import getcwd
 
 from .audiocard import AudioCard
 from .iqaudiocodec import IQaudioCodec
@@ -11,6 +12,7 @@ __all__ = [
 ]
 
 SYSTEM_CARD_FILE = Path("/proc/asound/cards")
+CWD = getcwd()
 
 
 class Factory:
@@ -26,16 +28,16 @@ class Factory:
                 if len(strs) > 2 and strs[0] == "0":
                     return strs[1].lstrip("[").rstrip("]:")
 
-    def create(self, cwd: Path) -> AudioCard:
+    def create(self) -> AudioCard:
         # get the current card
         card_name = self.get_current_card()
         if card_name == "IQaudIOCODEC":
-            card = IQaudioCodec(cwd)
+            card = IQaudioCodec(CWD)
         # elif card_name == "sndrpihifiberry":
         #     card = pistomp.hifiberry.Hifiberry(self.cwd)
         # elif card_name == "audioinjectorpi":
         #     card = pistomp.audioinjector.Audioinjector(self.cwd)
         else:  # Could be explicit here but we need to return some card, so make it the most common option
-            card = IQaudioCodec(cwd)
+            card = IQaudioCodec(CWD)
         Factory.__exists = True
         return card

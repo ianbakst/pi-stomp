@@ -38,15 +38,15 @@ from pistomp.util.mode import (
 )
 from pistomp.wifi import WiFiManager
 
+CWD = os.getcwd()
 
 class Mod(Host):
-    def __init__(self, audiocard, homedir):
+    def __init__(self, audiocard):
         super().__init__()
         self.wifi_manager = None
         logging.info("Init mod")
         self.audiocard = audiocard
         self.lcd = None
-        self.homedir = homedir
         self.root_uri = "http://localhost:80/"
 
         self.pedalboards = {}
@@ -739,9 +739,9 @@ class Mod(Host):
                 [
                     "git",
                     "--git-dir",
-                    self.homedir + "/.git",
+                    CWD + "/.git",
                     "--work-tree",
-                    self.homedir,
+                    CWD,
                     "describe",
                 ]
             )
