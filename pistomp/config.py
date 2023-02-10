@@ -19,7 +19,7 @@ from typing import Optional
 import yaml
 
 
-DEFAULT_CONFIG_DIR = getcwd() + 'conf'
+DEFAULT_CONFIG_DIR = join(getcwd(), 'conf')
 DEFAULT_CONFIG_FILE = "default_config.yml"
 
 
