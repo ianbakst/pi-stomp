@@ -1,3 +1,5 @@
+import logging
+
 from . import analogcontrol
 from . import analogmidicontrol
 from . import analogswitch
@@ -14,6 +16,7 @@ from . import switch
 from . import util
 from . import wifi
 
+logging.getLogger(__name__).addHandler(logging.NullHandler)
 
 __all__ = [
     "analogcontrol",

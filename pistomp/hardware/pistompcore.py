@@ -20,10 +20,12 @@
 # 2 Encoders with switches
 #
 # A new version with different controls should have a new separate subclass
+from copy import deepcopy
 from os import getcwd
 
 import RPi.GPIO as GPIO
 
+from pistomp.config import Config
 from pistomp.encoder import Encoder
 from pistomp.switch.encoderswitch import EncoderSwitch
 from .hardware import Hardware
@@ -50,7 +52,7 @@ CWD = getcwd()
 
 
 class Pistompcore(Hardware):
-    def __init__(self, cfg, mod, midiout, refresh_callback):
+    def __init__(self, cfg: Config, mod, midiout, refresh_callback):
         super().__init__(cfg, mod, midiout, refresh_callback)
         self.mod = mod
         self.midiout = midiout
@@ -79,11 +81,11 @@ class Pistompcore(Hardware):
         self.relay = Relay(RELAY_SET_PIN, RELAY_RESET_PIN)
 
     def init_analog_controls(self):
-        cfg = self.default_cfg.copy()
+        cfg = deepcopy(self.base_cfg)
         if len(self.analog_controls) == 0:
             self.create_analog_controls(cfg)
 
     def init_footswitches(self):
-        cfg = self.default_cfg.copy()
+        cfg = deepcopy(self.base_cfg)
         if len(self.footswitches) == 0:
             self.create_footswitches(cfg)

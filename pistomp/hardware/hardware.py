@@ -14,19 +14,25 @@
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
 
 from abc import abstractmethod
+from copy import deepcopy
 import logging
 import os
 import spidev
+from typing import Optional
 
-from pistomp.util import constants as Token
-from pistomp.util import common as Util
+from pistomp.config import Config
 from pistomp.analogmidicontrol import AnalogMidiControl
 from pistomp.switch.footswitch import Footswitch
+from pistomp.util import constants as Token
+from pistomp.util import common as Util
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Hardware:
-    def __init__(self, default_config, mod, midiout, refresh_callback):
-        logging.info("Init hardware: " + type(self).__name__)
+    def __init__(self, cfg: Config, mod, midiout, refresh_callback):
+        LOGGER.info("Init hardware: " + type(self).__name__)
         self.mod = mod
         self.midiout = midiout
         self.refresh_callback = refresh_callback
@@ -35,8 +41,8 @@ class Hardware:
         self.test_sentinel = None
 
         # From config file(s)
-        self.default_cfg = default_config
-        self.version = self.default_cfg[Token.HARDWARE][Token.VERSION]
+        self.base_cfg = cfg
+        self.version = self.base_cfg.hardware_version
         self.cfg = None  # compound cfg (default with user/pedalboard specific cfg overlaid)
         self.midi_channel = 0
 
@@ -71,16 +77,15 @@ class Hardware:
         for s in self.footswitches:
             s.poll()
 
-    def reinit(self, cfg):
+    def reinit(self, cfg: Optional[Config] = None):
         # reinit hardware as specified by the new cfg context (after pedalboard change, etc.)
-        self.cfg = self.default_cfg.copy()
-
+        self.cfg = deepcopy(self.base_cfg)
         self.__init_midi_default()
         self.__init_footswitches(self.cfg)
-
-        if cfg is not None:
-            self.__init_midi(cfg)
-            self.__init_footswitches(cfg)
+        if cfg is None:
+            return
+        self.__init_midi(cfg)
+        self.__init_footswitches(cfg)
 
     @abstractmethod
     def init_analog_controls(self):
@@ -154,26 +159,19 @@ class Hardware:
             )
             self.footswitches.append(fs)
 
-    def create_analog_controls(self, cfg):
-        if (
-            cfg is None
-            or (Token.HARDWARE not in cfg)
-            or (Token.ANALOG_CONTROLLERS not in cfg[Token.HARDWARE])
-        ):
-            return
-
+    def create_analog_controls(self, cfg: Config):
         midi_channel = self.__get_real_midi_channel(cfg)
-        cfg_c = cfg[Token.HARDWARE][Token.ANALOG_CONTROLLERS]
+        cfg_c = cfg.analog_controllers
         if cfg_c is None:
             return
         for c in cfg_c:
-            if Util.DICT_GET(c, Token.DISABLE) is True:
+            if c.disable:
                 continue
 
-            adc_input = Util.DICT_GET(c, Token.ADC_INPUT)
-            midi_cc = Util.DICT_GET(c, Token.MIDI_CC)
-            threshold = Util.DICT_GET(c, Token.THRESHOLD)
-            control_type = Util.DICT_GET(c, Token.TYPE)
+            adc_input = c.adc_input
+            midi_cc = c.midi_cc
+            threshold = c.threshold
+            control_type = c.type
 
             if adc_input is None:
                 logging.error("Analog control specified without %s" % Token.ADC_INPUT)
@@ -198,15 +196,11 @@ class Hardware:
             key = format("%d:%d" % (midi_channel, midi_cc))
             self.controllers[key] = control
 
-    def __get_real_midi_channel(self, cfg):
+    def __get_real_midi_channel(self, cfg: Config):
         chan = 0
-        try:
-            val = cfg[Token.HARDWARE][Token.MIDI][Token.CHANNEL]
-            # LAME bug in Mod detects MIDI channel as one higher than sent (7 sent, seen by mod as 8) so compensate here
-            chan = val - 1 if val > 0 else 0
-        except KeyError:
-            pass
-        return chan
+        val = cfg.midi_channel
+        # LAME bug in Mod detects MIDI channel as one higher than sent (7 sent, seen by mod as 8) so compensate here
+        return val - 1 if val > 0 else 0
 
     def __init_midi_default(self):
         self.__init_midi(self.cfg)
@@ -223,19 +217,13 @@ class Hardware:
             fs.clear_relays()
         self.__init_footswitches(self.cfg)
 
-    def __init_footswitches(self, cfg):
-        if (
-            cfg is None
-            or (Token.HARDWARE not in cfg)
-            or (Token.FOOTSWITCHES not in cfg[Token.HARDWARE])
-        ):
-            return
-        cfg_fs = cfg[Token.HARDWARE][Token.FOOTSWITCHES]
+    def __init_footswitches(self, cfg: Config):
+        cfg_fs = cfg.footswitches
         for idx, fs in enumerate(self.footswitches):
             # See if a corresponding cfg entry exists.  if so, override
             f = None
             for f in cfg_fs:
-                if f[Token.ID] == idx:
+                if f.debounce_input == idx:
                     break
                 else:
                     f = None
@@ -244,8 +232,8 @@ class Hardware:
                 fs.clear_display_label()
                 fs.clear_relays()
                 fs.clear_preset()
-                for action in (a for a in [Token.SHORT, Token.LONG] if a in f):
-                    if f[action] == Token.BYPASS:
+                for action in ["short_action", "long_action"]:
+                    if getattr(f, action) == Token.BYPASS:
                         fs.add_relay(self.relay, action == Token.SHORT)
                         fs.set_display_label("byps")
                     if f[action] == Token.PRESET:

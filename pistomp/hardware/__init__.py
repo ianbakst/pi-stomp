@@ -13,7 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
 from typing import Optional
-from pistomp.util import constants
+
+from pistomp import config
 
 from .pistompcore import Pistompcore
 from .hardware import Hardware
@@ -23,11 +24,12 @@ class Factory:
     __exists: bool = False
 
     @staticmethod
-    def create(cfg, handler, midiout) -> Optional[Hardware]:
-        version = cfg.get(constants.HARDWARE, {}).get(constants.VERSION)
-        if version < 2.0:
+    def create(handler, midiout) -> Optional[Hardware]:
+        cfg = config.load()
+        version = cfg.hardware_version
+        if version.major < 2:
             return
-        elif (version >= 2.0) and (version < 3.0):
+        elif (version.major >= 2) and (version.major < 3):
             hw = Pistompcore(cfg, handler, midiout, refresh_callback=handler.update_lcd_fs)
             Factory.__exists = True
             return hw
