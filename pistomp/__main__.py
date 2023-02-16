@@ -9,11 +9,13 @@ from rtmidi.midiutil import open_midioutput
 from pistomp import audiocard as ac
 from pistomp import hardware, host
 
+LOGGER = logging.getLogger(__name__)
+
 
 def loop(log: str, host_type: str, short_poll: float = 0.01, long_poll: int = 100) -> None:
     if log is not None:
-        print("Log level now set to: %s" % logging.getLevelName(log.upper()))
-        logging.basicConfig(level=log.upper())
+        LOGGER.setLevel(level=log.upper())
+        LOGGER.critical(f"Log level now set to: {log.upper()}")
 
     # Audio Card Config - doing this early so audio passes ASAP
     audiocard = ac.Factory().create()
@@ -77,7 +79,7 @@ def loop(log: str, host_type: str, short_poll: float = 0.01, long_poll: int = 10
     #         handler.cleanup()
     #         raise
 
-    logging.info("Entering main loop. Press Control-C to exit.")
+    LOGGER.info("Entering main loop. Press Control-C to exit.")
     it = 0
     try:
         while True:
@@ -93,7 +95,7 @@ def loop(log: str, host_type: str, short_poll: float = 0.01, long_poll: int = 10
                 it = 0
 
     except KeyboardInterrupt:
-        logging.info("keyboard interrupt")
+        LOGGER.info("keyboard interrupt")
     finally:
         handler.cleanup()
         logging.info("Exit.")
