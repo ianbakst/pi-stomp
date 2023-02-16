@@ -229,7 +229,7 @@ class Hardware:
                 fs.clear_relays()
                 fs.clear_preset()
                 for _length in ["short", "long"]:
-                    action = getattr(f, f"action_{_length}")
+                    action = getattr(f, f"{_length}_action")
                     if action is None:
                         continue
                     if action == Token.BYPASS:
