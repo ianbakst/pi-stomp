@@ -228,12 +228,15 @@ class Hardware:
                 fs.clear_display_label()
                 fs.clear_relays()
                 fs.clear_preset()
-                for action in ["short_action", "long_action"]:
-                    if getattr(f, action) == Token.BYPASS:
+                for action_length in ["short_action", "long_action"]:
+                    action = getattr(f, action_length)
+                    if action is None:
+                        continue
+                    if action == Token.BYPASS:
                         fs.add_relay(self.relay, action == Token.SHORT)
                         fs.set_display_label("byps")
-                    if getattr(f, action).startswith(Token.PRESET):
-                        preset_value = getattr(f, action).split('-')[-1]
+                    if action.startswith(Token.PRESET):
+                        preset_value = action.split('-')[-1]
                         if preset_value == Token.UP:
                             fs.add_preset(
                                 callback=self.mod.preset_incr_and_change,
