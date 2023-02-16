@@ -24,11 +24,10 @@ footswitches:
 - debounce_input: 0
   gpio_output: 0
   short: BYPASS
-  long: preset
-  long-preset: UP
+  long: preset-UP
 - debounce_input: 1
   gpio_output: 13
-  midi_CC: 62
+  midi_cc: 62
   color: lime
 - debounce_input: 2
   gpio_output: 26
