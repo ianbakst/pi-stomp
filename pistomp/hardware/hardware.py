@@ -232,8 +232,8 @@ class Hardware:
                     if getattr(f, action) == Token.BYPASS:
                         fs.add_relay(self.relay, action == Token.SHORT)
                         fs.set_display_label("byps")
-                    if getattr(f, action) == Token.PRESET:
-                        preset_value = getattr(f, f"{action}-{Token.PRESET}")
+                    if getattr(f, action).startswith(Token.PRESET):
+                        preset_value = getattr(f, action).split('-')[-1]
                         if preset_value == Token.UP:
                             fs.add_preset(
                                 callback=self.mod.preset_incr_and_change,
@@ -269,5 +269,5 @@ class Hardware:
                                 key
                             ] = fs  # TODO problem if this creates a new element?
                 # LCD attributes
-                if Token.COLOR in f:
-                    fs.set_lcd_color(f[Token.COLOR])
+                if f.color is not None:
+                    fs.set_lcd_color(f.color)
