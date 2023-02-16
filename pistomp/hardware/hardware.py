@@ -115,15 +115,11 @@ class Hardware:
             self.test_pass = False
             self.test()
 
-    def create_footswitches(self, cfg):
-        if (
-            cfg is None
-            or (Token.HARDWARE not in cfg)
-            or (Token.FOOTSWITCHES not in cfg[Token.HARDWARE])
-        ):
+    def create_footswitches(self, cfg: Config):
+        if cfg is None:
             return
 
-        cfg_fs = cfg[Token.HARDWARE][Token.FOOTSWITCHES]
+        cfg_fs = cfg.footswitches
         if cfg_fs is None:
             return
 
