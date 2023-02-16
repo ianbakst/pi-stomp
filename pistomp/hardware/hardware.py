@@ -253,8 +253,8 @@ class Hardware:
                                 short=(action == Token.SHORT),
                             )
                             fs.set_display_label(str(preset_value))
-                    if Token.MIDI_CC in f:
-                        cc = f[Token.MIDI_CC]
+                    if f.midi_cc is not None:
+                        cc = f.midi_cc
                         if cc == Token.NONE:
                             fs.set_midi_CC(None)
                             for k, v in self.controllers.items():
