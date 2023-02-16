@@ -232,8 +232,8 @@ class Hardware:
                     if getattr(f, action) == Token.BYPASS:
                         fs.add_relay(self.relay, action == Token.SHORT)
                         fs.set_display_label("byps")
-                    if f[action] == Token.PRESET:
-                        preset_value = f.get(f"{action}-{Token.PRESET}")
+                    if getattr(f, action) == Token.PRESET:
+                        preset_value = getattr(f, f"{action}-{Token.PRESET}")
                         if preset_value == Token.UP:
                             fs.add_preset(
                                 callback=self.mod.preset_incr_and_change,
