@@ -125,18 +125,18 @@ class Hardware:
 
         midi_channel = self.__get_real_midi_channel(cfg)
         for idx, f in enumerate(cfg_fs):
-            if Util.DICT_GET(f, Token.DISABLE) is True:
+            if f.disable:
                 continue
 
-            di = Util.DICT_GET(f, Token.DEBOUNCE_INPUT)
+            di = f.debounce_input
             if self.debounce_map and di in self.debounce_map:
                 gpio_input = self.debounce_map[di]
             else:
-                gpio_input = Util.DICT_GET(f, Token.GPIO_INPUT)
+                gpio_input = f.gpio_input
 
-            gpio_output = Util.DICT_GET(f, Token.GPIO_OUTPUT)
-            midi_cc = Util.DICT_GET(f, Token.MIDI_CC)
-            id = Util.DICT_GET(f, Token.ID)
+            gpio_output = f.gpio_output
+            midi_cc = f.midi_cc
+            id = f.debounce_input
 
             if gpio_input is None:
                 logging.error(
