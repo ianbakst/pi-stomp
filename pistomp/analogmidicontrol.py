@@ -19,7 +19,8 @@ from pistomp.util import common as util
 from .analogcontrol import AnalogControl
 
 import logging
-from typing import Optional
+
+LOGGER = logging.getLogger(__name__)
 
 
 class AnalogMidiControl(AnalogControl):
@@ -32,7 +33,6 @@ class AnalogMidiControl(AnalogControl):
         midi_channel,
         midiout,
         type,
-        cfg: Optional[dict] = None,
     ):
         super().__init__(spi, adc_channel, tolerance)
         self.midi_CC = midi_CC
@@ -43,7 +43,6 @@ class AnalogMidiControl(AnalogControl):
         self.type = type
         self.last_read = 0  # this keeps track of the last potentiometer value
         self.value = None
-        self.cfg = {} if cfg is None else cfg
 
     def set_midi_channel(self, midi_channel):
         self.midi_channel = midi_channel
@@ -51,21 +50,14 @@ class AnalogMidiControl(AnalogControl):
     def set_value(self, value):
         self.value = value
 
-    # Override of base class method
     def refresh(self):
         # read the analog pin
-        value = self.readChannel()
-
-        # how much has it changed since the last read?
-        pot_adjust = abs(value - self.last_read)
-        value_changed = pot_adjust > self.tolerance
-
-        if value_changed:
+        value = self.read_channel()
+        if abs(value - self.last_read) > self.tolerance:
             # convert 16bit adc0 (0-65535) trim pot read into 0-100 volume level
             set_volume = util.renormalize(value, 0, 1023, 0, 127)
-
             cc = [self.midi_channel | CONTROL_CHANGE, self.midi_CC, set_volume]
-            logging.debug("AnalogControl Sending CC event %s" % cc)
+            LOGGER.debug("AnalogControl Sending CC event %s" % cc)
             self.midiout.send_message(cc)
 
             # save the potentiometer reading for the next loop

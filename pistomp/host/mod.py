@@ -17,18 +17,23 @@ import json
 import logging
 import os
 from pathlib import Path
-import requests as req
+import requests
 import subprocess
 import sys
+from typing import Callable, Optional
 import yaml
 
 from .host import Host
 from pistomp.analogmidicontrol import AnalogMidiControl
-from pistomp.effects import Parameter, Pedalboard
-from pistomp.switch.footswitch import Footswitch
+from pistomp.audiocard import AudioCard
+from pistomp.effects import Current, Deep, Parameter, Pedalboard
+from pistomp.hardware import Hardware
+from pistomp.lcd import LCD
+from pistomp.switch.footswitch import ActionMessage, Footswitch
 from pistomp.util import constants as Token
 from pistomp.util import common as util
 from pistomp.util.mode import (
+    FootSwitchAction,
     TopEncoderMode,
     BotEncoderMode,
     UniversalEncoderMode,
@@ -39,16 +44,19 @@ from pistomp.util.mode import (
 from pistomp.wifi import WiFiManager
 
 CWD = os.getcwd()
+PEDALBOARD_MOD_FILE = "/home/pistomp/data/last.json"
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Mod(Host):
-    def __init__(self, audiocard):
-        super().__init__()
-        self.wifi_manager = None
-        logging.info("Init mod")
+    def __init__(self, audiocard: AudioCard, hardware: Hardware, lcd: LCD):
+        LOGGER.info("Init mod")
         self.audiocard = audiocard
-        self.lcd = None
+        self.hardware = hardware
+        self.lcd = lcd
         self.root_uri = "http://localhost:80/"
+        self.wifi_manager = WiFiManager()
 
         self.pedalboards = {}
         self.pedalboard_list = []  # TODO LAME to have two lists
@@ -61,8 +69,6 @@ class Mod(Host):
         self.parameter_tweak_amount = 8
 
         self.plugin_dict = {}
-
-        self.hardware = None
 
         self.top_encoder_mode = TopEncoderMode.DEFAULT
         self.bot_encoder_mode = BotEncoderMode.DEFAULT
@@ -80,50 +86,16 @@ class Mod(Host):
         self.current_menu = MenuType.MENU_NONE
 
         # This file is modified when the pedalboard is changed via MOD UI
-        self.pedalboard_modification_file = "/home/pistomp/data/last.json"
+
         self.pedalboard_change_timestamp = (
-            os.path.getmtime(self.pedalboard_modification_file)
-            if Path(self.pedalboard_modification_file).exists()
-            else 0
+            os.path.getmtime(PEDALBOARD_MOD_FILE) if Path(PEDALBOARD_MOD_FILE).exists() else 0
         )
 
-        self.wifi_manager = WiFiManager()
-
     def __del__(self):
-        logging.info("Handler cleanup")
+        LOGGER.info("Handler cleanup")
         if self.wifi_manager:
             del self.wifi_manager
 
-    # Container for dynamic data which is unique to the "current" pedalboard
-    # The self.current pointed above will point to this object which gets
-    # replaced when a different pedalboard is made current (old Current object
-    # gets deleted and a new one added via self.set_current_pedalboard()
-    class Current:
-        def __init__(self, pedalboard):
-            self.pedalboard = pedalboard
-            self.presets = {}
-            self.preset_index = 0
-            self.analog_controllers = {}  # { type: (plugin_name, param_name) }
-
-    class Deep:
-        def __init__(self, plugin):
-            self.plugin = plugin
-            self.parameters = list(plugin.parameters.values()) if plugin is not None else None
-            self.selected_parameter_index = 0
-            self.selected_parameter = None
-            self.value = 0  # TODO shouldn't need this
-
-    #
-    # Hardware
-    #
-
-    def add_hardware(self, hardware):
-        self.hardware = hardware
-
-    def add_lcd(self, lcd):
-        self.lcd = lcd
-
-    #
     # Dual Encoder State Machine (used for pi-Stomp v1)
     #
     # Assumption that the top encoder actions can be executed regardless of bottom encoder mode
@@ -219,14 +191,12 @@ class Mod(Host):
         elif mode == BotEncoderMode.VALUE_EDIT:
             self.parameter_value_change(direction, self.parameter_value_commit)
 
-    #
-    # Universal Encoder State Machine (single encoder navigation for pi-Stomp Core)
-    #
-
-    def universal_encoder_sw(self, value):
+    def universal_encoder_sw(self, value: Optional[bool]):
+        if value is None:
+            return
         # State machine for universal rotary encoder switch
         mode = self.universal_encoder_mode
-        if value == SwitchValue.RELEASED:
+        if value:
             if mode == UniversalEncoderMode.DEFAULT:
                 self.universal_encoder_mode = UniversalEncoderMode.SCROLL
             elif mode == UniversalEncoderMode.SCROLL:
@@ -344,13 +314,38 @@ class Mod(Host):
 
     def poll_controls(self):
         if self.universal_encoder_mode is not UniversalEncoderMode.LOADING:
-            self.hardware.poll_controls()
+            self.poll_hardware()
         wifi_update = self.wifi_manager.poll()
         if wifi_update is not None:
             self.wifi_status = wifi_update
             self.lcd.update_wifi(self.wifi_status)
             if self.current_menu == MenuType.MENU_INFO:
                 self.system_info_update_wifi()
+
+    def poll_hardware(self):
+        results = self.hardware.poll()
+        for a in results["analog_controls"]:
+            self.analog_action(a)
+        for e in results['encoders']:
+            self.universal_select(e)
+        for s in results["encoder_switches"]:
+            self.universal_encoder_sw(s)
+        for f in results["footswitches"]:
+            self.footswitch_action(f)
+
+    def analog_action(self, result_action: ActionMessage):
+        pass
+
+    def footswitch_action(self, result_action: ActionMessage):
+        if result_action == FootSwitchAction.TUNER:
+            self.toggle_tuner()
+        elif result_action == FootSwitchAction.RELAY:
+            # change lcd
+            pass
+        result_action.callback()
+
+    def toggle_tuner(self):
+        pass
 
     def poll_modui_changes(self):
         # This poll looks for changes made via the MOD UI and tries to sync the pi-Stomp hardware
@@ -361,8 +356,8 @@ class Mod(Host):
         #
         # TODO this is an interim solution until better MOD-UI to pi-stomp event communication is added
         #
-        if Path(self.pedalboard_modification_file).exists():
-            ts = os.path.getmtime(self.pedalboard_modification_file)
+        if Path(PEDALBOARD_MOD_FILE).exists():
+            ts = os.path.getmtime(PEDALBOARD_MOD_FILE)
             if ts == self.pedalboard_change_timestamp:
                 return
 
@@ -371,37 +366,33 @@ class Mod(Host):
             self.lcd.draw_info_message("Loading...")
             mod_bundle = self.get_pedalboard_bundle_from_mod()
             if mod_bundle:
-                logging.info(
+                LOGGER.info(
                     "Pedalboard changed via MOD from: %s to: %s"
                     % (self.current.pedalboard.bundle, mod_bundle)
                 )
-                pb = self.pedalboards[mod_bundle]
-                self.set_current_pedalboard(pb)
+                self.set_current_pedalboard(self.pedalboards[mod_bundle])
 
     #
     # Pedalboard Stuff
     #
 
     def load_pedalboards(self):
-        url = self.root_uri + "pedalboard/list"
-
         try:
-            resp = req.get(url)
+            response = requests.get(self.root_uri + "pedalboard/list")
         except:  # TODO
-            logging.error("Cannot connect to mod-host")
+            LOGGER.error("Cannot connect to mod-host")
             sys.exit()
 
-        if resp.status_code != 200:
-            logging.error("Cannot connect to mod-host.  Status: %s" % resp.status_code)
+        if response.status_code != 200:
+            LOGGER.error("Cannot connect to mod-host.  Status: %s" % response.status_code)
             sys.exit()
 
-        pbs = json.loads(resp.text)
-        for pb in pbs:
-            logging.info("Loading pedalboard info: %s" % pb[Token.TITLE])
+        pedalboards = json.loads(response.text)
+        for pb in pedalboards:
+            LOGGER.info("Loading pedalboard info: %s" % pb[Token.TITLE])
             bundle = pb[Token.BUNDLE]
-            title = pb[Token.TITLE]
-            pedalboard = Pedalboard(title, bundle)
-            pedalboard.load_bundle(bundle, self.plugin_dict)
+            pedalboard = Pedalboard(pb[Token.TITLE], bundle)
+            self.plugin_dict = pedalboard.load_bundle()
             self.pedalboards[bundle] = pedalboard
             self.pedalboard_list.append(pedalboard)
             # logging.debug("dump: %s" % pedalboard.to_json())
@@ -415,14 +406,14 @@ class Mod(Host):
     def get_pedalboard_bundle_from_mod(self):
         # Assumes the caller has already checked for existence of the file
         mod_bundle = None
-        with open(self.pedalboard_modification_file, "r") as file:
+        with open(PEDALBOARD_MOD_FILE, "r") as file:
             j = json.load(file)
-            mod_bundle = util.DICT_GET(j, "pedalboard")
+            mod_bundle = j.get("pedalboard")
         return mod_bundle
 
     def get_current_pedalboard_bundle_path(self):
         mod_bundle = None
-        if Path(self.pedalboard_modification_file).exists():
+        if Path(PEDALBOARD_MOD_FILE).exists():
             mod_bundle = self.get_pedalboard_bundle_from_mod()
         return mod_bundle
 
@@ -431,7 +422,7 @@ class Mod(Host):
         del self.current
 
         # Create a new "current"
-        self.current = self.Current(pedalboard)
+        self.current = Current(pedalboard)
 
         # Load Pedalboard specific config (overrides default set during initial hardware init)
         config_file = Path(pedalboard.bundle) / "config.yml"
@@ -485,7 +476,10 @@ class Mod(Host):
                             elif isinstance(controller, AnalogMidiControl):
                                 key = "%s:%s" % (plugin.instance_id, param.name)
                                 controller.cfg.type = controller.type
-                                self.current.analog_controllers[key] = (controller.cfg, plugin.category)
+                                self.current.analog_controllers[key] = (
+                                    controller.cfg,
+                                    plugin.category,
+                                )
 
             # Move Footswitch controlled plugins to the end of the list
             self.current.pedalboard.plugins = [
@@ -510,20 +504,20 @@ class Mod(Host):
             self.selected_pedalboard_index = next_idx
 
     def pedalboard_change(self):
-        logging.info("Pedalboard change")
+        LOGGER.info("Pedalboard change")
         if self.selected_pedalboard_index < len(self.pedalboard_list):
             self.lcd.draw_info_message("Loading...")
 
             resp1 = req.get(self.root_uri + "reset")
             if resp1.status_code != 200:
-                logging.error("Bad Reset request")
+                LOGGER.error("Bad Reset request")
 
             uri = self.root_uri + "pedalboard/load_bundle/"
             bundlepath = self.pedalboard_list[self.selected_pedalboard_index].bundle
             data = {"bundlepath": bundlepath}
             resp2 = req.post(uri, data)
             if resp2.status_code != 200:
-                logging.error(
+                LOGGER.error(
                     "Bad Rest request: %s %s  status: %d" % (uri, data, resp2.status_code)
                 )
 
@@ -588,13 +582,13 @@ class Mod(Host):
 
     def preset_change(self):
         index = self.selected_preset_index
-        logging.info("preset change: %d" % index)
+        LOGGER.info("preset change: %d" % index)
         self.lcd.draw_info_message("Loading...")
         url = self.root_uri + "snapshot/load?id=%d" % index
         # req.get(self.root_uri + "reset")
         resp = req.get(url)
         if resp.status_code != 200:
-            logging.error("Bad Rest request: %s status: %d" % (url, resp.status_code))
+            LOGGER.error("Bad Rest request: %s status: %d" % (url, resp.status_code))
         self.current.preset_index = index
 
         # load of the preset might have changed plugin bypass status
@@ -636,7 +630,7 @@ class Mod(Host):
                 if resp.status_code == 200:
                     p.set_bypass(resp.text == "true")
             except:
-                logging.error("failed to get bypass value for: %s" % p.instance_id)
+                LOGGER.error("failed to get bypass value for: %s" % p.instance_id)
                 continue
         self.lcd.draw_tools(SelectedType.WIFI, SelectedType.BYPASS, SelectedType.SYSTEM)
         self.lcd.draw_analog_assignments(self.current.analog_controllers)
@@ -671,7 +665,7 @@ class Mod(Host):
             self.lcd.draw_plugin_select(plugin)
 
     def toggle_plugin_bypass(self):
-        logging.debug("toggle_plugin_bypass")
+        LOGGER.debug("toggle_plugin_bypass")
         inst = self.get_selected_instance()
         if inst is not None:
             if inst.has_footswitch:
@@ -747,7 +741,7 @@ class Mod(Host):
                 self.git_describe = output.decode()
                 self.software_version = self.git_describe.split("-")[0]
         except subprocess.CalledProcessError:
-            logging.error("Cannot obtain git software tag info")
+            LOGGER.error("Cannot obtain git software tag info")
 
     def system_menu_show(self):
         self.current_menu = MenuType.MENU_SYSTEM
@@ -768,7 +762,7 @@ class Mod(Host):
             "7": {Token.NAME: "Input Gain", Token.ACTION: self.system_menu_input_gain},
             "8": {Token.NAME: "Headphone Volume", Token.ACTION: self.system_menu_headphone_volume},
         }
-        self.lcd.menu_show("System menu", self.menu_items)
+        self.lcd.menu_show("System Menu", self.menu_items)
         # Trick: we display the wifi status in the menu, Ideally we need a better
         # state handling to know what needs to be displayed or not based on whether
         # we have a menu or not. For example a "Page" object that corresponds to
@@ -809,9 +803,9 @@ class Mod(Host):
     def system_info_show(self):
         self.current_menu = MenuType.MENU_INFO
         self.menu_items = {
-            "0": {Token.NAME: "< Back to main screen", Token.ACTION: self.menu_back}
+            "0": {Token.NAME: "<- Back to main screen", Token.ACTION: self.menu_back},
+            "SW:": {Token.NAME: self.git_describe, Token.ACTION: None}
         }
-        self.menu_items["SW:"] = {Token.NAME: self.git_describe, Token.ACTION: None}
         self.system_info_populate_wifi()
         self.lcd.menu_show("System Info", self.menu_items)
         # See comment in system_menu_show()
@@ -834,7 +828,7 @@ class Mod(Host):
         self.wifi_manager.enable_hotspot()
 
     def system_menu_save_current_pb(self):
-        logging.debug("save current")
+        LOGGER.debug("save current")
         # TODO this works to save the pedalboard values, but just default, not Preset values
         # Figure out how to save preset (host.py:preset_save_replace)
         # TODO this also causes a problem if self.current.pedalboard.title != mod-host title
@@ -843,30 +837,30 @@ class Mod(Host):
         try:
             resp = req.post(url, data={"asNew": "0", "title": self.current.pedalboard.title})
             if resp.status_code != 200:
-                logging.error("Bad Rest request: %s status: %d" % (url, resp.status_code))
+                LOGGER.error("Bad Rest request: %s status: %d" % (url, resp.status_code))
             else:
-                logging.debug("saved")
+                LOGGER.debug("saved")
         except:
-            logging.error("status %s" % resp.status_code)
+            LOGGER.error("status %s" % resp.status_code)
             return
 
     def system_menu_reload(self):
-        logging.info("Exiting main process, systemctl should restart if enabled")
+        LOGGER.info("Exiting main process, systemctl should restart if enabled")
         sys.exit(0)
 
     def system_menu_restart_sound(self):
         self.lcd.splash_show()
-        logging.info("Restart sound engine (jack)")
+        LOGGER.info("Restart sound engine (jack)")
         os.system("sudo systemctl restart jack")
 
     def system_menu_shutdown(self):
         self.lcd.splash_show(False)
-        logging.info("System Shutdown")
+        LOGGER.info("System Shutdown")
         os.system("sudo systemctl --no-wall poweroff")
 
     def system_menu_reboot(self):
         self.lcd.splash_show(False)
-        logging.info("System Reboot")
+        LOGGER.info("System Reboot")
         os.system("sudo systemctl reboot")
 
     def system_menu_input_gain(self):
@@ -889,8 +883,8 @@ class Mod(Host):
 
     def system_menu_parameter(self, title, param_name, info):
         value = self.audiocard.get_parameter(param_name)
-        self.deep = self.Deep(None)
-        param = Parameter.Parameter(info, value, None)
+        self.deep = Deep(None)
+        param = Parameter(info, value, None)
         self.deep.selected_parameter = param
         self.lcd.draw_value_edit_graph(param, value)
         self.lcd.draw_info_message(title)
@@ -903,8 +897,9 @@ class Mod(Host):
     def headphone_volume_commit(self):
         self.audiocard.set_parameter(self.audiocard.MASTER, self.deep.selected_parameter.value)
 
-    def system_toggle_bypass(self):
-        relay = self.hardware.relay
+    def system_toggle_bypass(self, relay_id: int = 0):
+        relay = self.hardware.relays[relay_id]
+        relay.toggle()
         footswitch = None
         # if a footswitch is assigned to control a relay, use it
         for fs in self.hardware.footswitches:
@@ -930,7 +925,7 @@ class Mod(Host):
 
     def parameter_edit_show(self, selected=0):
         plugin = self.get_selected_instance()
-        self.deep = self.Deep(
+        self.deep = Deep(
             plugin
         )  # TODO this creates a new obj every time menu is shown, singleton?
         self.deep.selected_parameter_index = 0
@@ -989,18 +984,18 @@ class Mod(Host):
         self.parameter_set_send(url, formatted_value, 200)
 
     def parameter_set_send(self, url, value, expect_code):
-        logging.debug("request: %s" % url)
+        LOGGER.debug("request: %s" % url)
         try:
             resp = None
             if value is not None:
-                logging.debug("value: %s" % value)
+                LOGGER.debug("value: %s" % value)
                 resp = req.post(url, json={"value": value})
             if resp.status_code != expect_code:
-                logging.error("Bad Rest request: %s status: %d" % (url, resp.status_code))
+                LOGGER.error("Bad Rest request: %s status: %d" % (url, resp.status_code))
             else:
-                logging.debug("Parameter changed to: %d" % value)
+                LOGGER.debug("Parameter changed to: %d" % value)
         except:
-            logging.debug("status: %s" % resp.status_code)
+            LOGGER.debug("status: %s" % resp.status_code)
             return resp.status_code
 
     #

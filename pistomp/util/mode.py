@@ -1,4 +1,21 @@
-from enum import Enum
+from enum import auto, Enum
+from typing import Optional
+
+
+class FootSwitchAction(Enum):
+    DISABLED = auto()
+    RELAY = auto()
+    TUNER = auto()
+    PRESET_UP = auto()
+    PRESET_DOWN = auto()
+    MIDI_CC = auto()
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.DISABLED
+
+    def __init__(self, value: Optional[int]):
+        self.specific = value
 
 
 class TopEncoderMode(Enum):

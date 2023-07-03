@@ -12,75 +12,169 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
-
 import logging
+from typing import Callable, Optional
+
 import RPi.GPIO as GPIO
 from rtmidi.midiconstants import CONTROL_CHANGE
 
 from .gpioswitch import GpioSwitch
+from pistomp.util.color import Color
+from pistomp.util.mode import FootSwitchAction
+
+
+LOGGER = logging.getLogger(__name__)
+
+
+class ActionMessage:
+    id: int
+    action: FootSwitchAction
+    value: Optional[int]
+    callback: Optional[Callable]
+
+    def __init__(self, id: int, action: FootSwitchAction, value, callback: Optional[Callable] = None):
+        self.id = id
+        self.action = action
+        self.value = value
+        self.callback = callback
+
+    def add_callback(self, callback: Callable):
+        old_callback = self.callback
+
+        def new_callback():
+            callback()
+            if old_callback is not None:
+                old_callback()
+        self.callback = new_callback
 
 
 class Footswitch(GpioSwitch):
-    def __init__(self, id, fs_pin, led_pin, midi_CC, midi_channel, midiout, refresh_callback):
+    id: int
+    top_disp_label: Optional[str]
+    bot_disp_label: Optional[str]
+    _enabled: bool
+    _led_pin: Optional[int]
+    led_short_action: bool
+    short_action: ActionMessage
+    long_action: ActionMessage
+    _lcd_color_short = Optional[Color]
+    _lcd_color_long = Optional[Color]
+
+    def __init__(
+        self,
+        id: int,
+        fs_pin: int,
+        midi_CC: int,
+        short_action: str,
+        long_action: str,
+        midi_channel: int = 0,
+        led_pin: Optional[int] = None,
+    ):
         super().__init__(fs_pin, midi_channel, midi_CC)
         self.id = id
-        self.display_label = None
-        self.enabled = False
-        self.fs_pin = fs_pin
+        self._top_display_label = None
+        self._bot_display_label = None
+        self._enabled = False
         self.led_pin = led_pin
-        self.midiout = midiout
-        self.refresh_callback = refresh_callback
-        self.relay_list = []
-        self.preset_callback = None
-        self.preset_callback_arg = None
-        self.lcd_color = None
-        self.relay_action_short = True
-        self.preset_action_short = True
+        self.led_short_action = True
+        self.lcd_color_short = None
+        self.lcd_color_long = None
+        self.short_action = short_action
+        self.long_action = long_action
 
-        if led_pin is not None:
-            GPIO.setup(led_pin, GPIO.OUT)
-            self._set_led(GPIO.LOW)
+    @property
+    def short_action(self):
+        return self._short_action
 
-    # Should this be in Controller ?
-    def set_midi_CC(self, midi_CC):
-        self.midi_CC = midi_CC
+    @short_action.setter
+    def short_action(self, action):
+        self._short_action = self.generate_action(action)
 
-    # Should this be in Controller ?
-    def set_midi_channel(self, midi_channel):
-        self.midi_channel = midi_channel
+    @property
+    def long_action(self):
+        return self._long_action
+
+    @long_action.setter
+    def long_action(self, action):
+        self._long_action = self.generate_action(action)
+
+    def generate_action(self, action):
+        fsa = FootSwitchAction(action)
+        if fsa == FootSwitchAction.RELAY:
+            message = 0
+        elif fsa == FootSwitchAction.MIDI_CC:
+            message = [self.midi_channel | CONTROL_CHANGE, self.midi_CC, 127 if self.enabled else 0]
+        else:
+            message = None
+        return ActionMessage(self.id, fsa, message)
+
+    @property
+    def led_pin(self):
+        return self._led_pin
+
+    @led_pin.setter
+    def led_pin(self, value):
+        self._led_pin = value
+        if self._led_pin is not None:
+            GPIO.setup(value, GPIO.OUT)
+            self.enabled = False
+
+    @property
+    def enabled(self):
+        return self._enabled
+
+    @enabled.setter
+    def enabled(self, value: bool):
+        self._enabled = value
+        if self.led_pin is not None:
+            GPIO.output(self.led_pin, self._enabled)
+
+    def toggle(self):
+        self.enabled = not self.enabled
 
     def set_value(self, value):
         self.enabled = value < 1
-        self._set_led(self.enabled)
 
-    def _set_led(self, enabled):
-        if self.led_pin is not None:
-            GPIO.output(self.led_pin, enabled)
+    @property
+    def lcd_color_short(self):
+        return self._lcd_color_short
 
-    def set_lcd_color(self, color):
-        self.lcd_color = color
+    @lcd_color_short.setter
+    def lcd_color_short(self, color: Optional[str]):
+        self._lcd_color_short = Color('WHITE' if color is None else color)
 
-    def pressed(self, short):
-        # If a footswitch can be mapped to control a relay, preset, MIDI or all 3
-        #
-        # The footswitch will only "toggle" if it's associated with a relay
-        # (in which case it will toggle with the relay) or with a Midi message
-        #
-        new_enabled = not self.enabled
+    @property
+    def lcd_color_long(self):
+        return self._lcd_color_long
 
+    @lcd_color_long.setter
+    def lcd_color_long(self, color: Optional[str]):
+        self._lcd_color_long = Color('WHITE' if color is None else color)
+
+    def press_callback(self, short: bool):
+        if self.led_short_action == short:
+            LOGGER.debug(f'Footswitch {self.id} Toggle LED')
+            self.toggle()
+
+    def pressed(self, short: bool = True) -> ActionMessage:
+        # return action for processing
+        action = self.short_action if short else self.long_action
+        action.callback = lambda: self.press_callback(short)
+        return action
+
+    def otherwise(self, short, new_enabled):
         # Update Relay (if relay is associated with this footswitch)
         if len(self.relay_list) > 0:
             if short == self.relay_action_short:
                 # Pin kept low (long press)
                 # toggle the relay and LED, exit this method
-                self.enabled = new_enabled
+
                 for r in self.relay_list:
                     if self.enabled:
                         r.enable()
                     else:
                         r.disable()
-                self._set_led(self.enabled)
-                self.refresh_callback(True)  # True means this is a bypass change only
+                # True means this is a bypass change only
                 return
 
         # If mapped to preset change
@@ -108,7 +202,6 @@ class Footswitch(GpioSwitch):
             self.parameter.value = not self.enabled  # TODO assumes mapped parameter is :bypass
 
         # Update LCD
-        self.refresh_callback()
 
     def set_display_label(self, label):
         self.display_label = label

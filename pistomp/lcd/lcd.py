@@ -108,5 +108,5 @@ class LCD(ABC):
         pass
 
     @abstractmethod
-    def shorten_name(self):
+    def shorten_name(self, name, width):
         pass

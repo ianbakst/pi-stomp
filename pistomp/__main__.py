@@ -4,10 +4,9 @@ import sys
 import time
 
 import RPi.GPIO as GPIO
-from rtmidi.midiutil import open_midioutput
 
 from pistomp import audiocard as ac
-from pistomp import hardware, host
+from pistomp import hardware, host, lcd
 
 LOGGER = logging.getLogger(__name__)
 
@@ -29,23 +28,20 @@ def loop(log: str, host_type: str, short_poll: float = 0.01, long_poll: int = 10
     # shouldn't need to aconnect, just send msgs directly to the thru port
     port = 0  # TODO get this (the Midi Through port) programmatically
     # port = sys.argv[1] if len(sys.argv) > 1 else None
-    try:
-        midiout, port_name = open_midioutput(port)
-    except (EOFError, KeyboardInterrupt):
-        sys.exit()
 
     # Hardware and handler objects
     handler = None
-
+    LOGGER.info(f"Initializing host type {host_type}")
     if host_type == "mod":
+        # init hardware
+        hw = hardware.Factory().create()
 
+        # init lcd
+        screen = lcd.Factory().create()
         # Create singleton Mod handler
-        handler = host.Factory().create(audiocard)
+        handler = host.Factory().create(audiocard, hw, screen)
 
         # Initialize hardware (Footswitches, Encoders, Analog inputs, etc.)
-        hw = hardware.Factory().create(handler, midiout)
-        handler.add_hardware(hw)
-
         # Load all pedalboard info from the lilv ttl file
         handler.load_pedalboards()
 
@@ -80,31 +76,25 @@ def loop(log: str, host_type: str, short_poll: float = 0.01, long_poll: int = 10
     #         raise
 
     LOGGER.info("Entering main loop. Press Control-C to exit.")
-    it = 0
+
     try:
         while True:
-            handler.poll_controls()
-            time.sleep(
-                short_poll
-            )  # lower to increase responsiveness, but can cause conflict with LCD if too low
-
-            # For less frequent events
-            it += 1
-            if it > long_poll:
-                handler.poll_modui_changes()
-                it = 0
+            handler.poll_modui_changes()
+            for _ in range(long_poll):
+                handler.poll_controls()
+                time.sleep(short_poll)
 
     except KeyboardInterrupt:
         LOGGER.info("keyboard interrupt")
     finally:
         handler.cleanup()
-        logging.info("Exit.")
-        midiout.close_port()
+        LOGGER.info("Exit.")
+        hw.midiout.close_port()
         if handler.lcd is not None:
             handler.lcd.cleanup()
         GPIO.cleanup()
         del handler
-        logging.info("Completed cleanup")
+        LOGGER.info("Completed cleanup")
 
 
 if __name__ == "__main__":

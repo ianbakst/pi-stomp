@@ -18,6 +18,31 @@ import RPi.GPIO as GPIO
 
 
 class Encoder:
+    def __init__(self, d_pin: int, clk_pin: int, use_interrupt: bool = True):
+
+        self.d_pin = d_pin
+        self.clk_pin = clk_pin
+        self.use_interrupt = use_interrupt
+
+        GPIO.setup(self.d_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(self.clk_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+        if self.use_interrupt:
+            GPIO.add_event_detect(self.d_pin, GPIO.BOTH, callback=self._gpio_callback)
+            GPIO.add_event_detect(self.clk_pin, GPIO.BOTH, callback=self._gpio_callback)
+            # It works fine without a lock since this is just dumb UI, but let's be correct..
+            self._lock = threading.Lock()
+
+        self.prevNextCode = 0
+        self.store = 0
+        self.direction = 0
+
+        # 16 possible grey codes.  1=Valid, 0=Invalid (bounce)
+        self.rot_enc_table = [0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0]
+
+    def __del__(self):
+        GPIO.remove_event_detect(self._gpio_callback)
+
     def _process_gpios(self):
         # This decode/debouce algorithm adapted from
         # https://www.best-microcontroller-projects.com/rotary-encoder.html
@@ -53,49 +78,18 @@ class Encoder:
             with self._lock:
                 self.direction += d
 
-    def __init__(self, d_pin, clk_pin, callback, use_interrupt=True):
-
-        self.d_pin = d_pin
-        self.clk_pin = clk_pin
-        self.callback = callback
-        self.use_interrupt = use_interrupt
-
-        GPIO.setup(self.d_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(self.clk_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-        if self.use_interrupt:
-            GPIO.add_event_detect(self.d_pin, GPIO.BOTH, callback=self._gpio_callback)
-            GPIO.add_event_detect(self.clk_pin, GPIO.BOTH, callback=self._gpio_callback)
-            # It works fine without a lock since this is just dumb UI, but let's be correct..
-            self._lock = threading.Lock()
-
-        self.prevNextCode = 0
-        self.store = 0
-        self.direction = 0
-
-        # 16 possible grey codes.  1=Valid, 0=Invalid (bounce)
-        self.rot_enc_table = [0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0]
-
-    def __del__(self):
-        GPIO.remove_event_detect(self._gpio_callback)
-
     def get_data(self):
         return GPIO.input(self.d_pin)
 
     def get_clk(self):
         return GPIO.input(self.clk_pin)
 
-    def read_rotary(self):
-        d = 0
-        if self.use_interrupt:
-            if self.direction != 0:
-                with self._lock:
-                    if self.direction > 0:
-                        d = 1
-                    elif self.direction < 0:
-                        d = -1
-                    self.direction -= d
-        else:
-            d = self._process_gpios()
-        if d != 0:
-            self.callback(d)
+    def read_rotary(self) -> int:
+        if not self.use_interrupt:
+            return self._process_gpios()
+        if self.direction == 0:
+            return 0
+        with self._lock:
+            d = (self.direction > 0) - (self.direction < 0)
+            self.direction -= d
+        return d

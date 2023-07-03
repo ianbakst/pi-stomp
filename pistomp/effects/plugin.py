@@ -18,8 +18,7 @@ from pistomp.switch.footswitch import Footswitch
 
 
 class Plugin:
-    def __init__(self, instance_id, parameters: dict, info, category=None):
-
+    def __init__(self, instance_id, parameters: dict, category=None):
         self.instance_id = instance_id
         self.parameters = parameters
         self.bypass_indicator_xy = ((0, 0), (0, 0))
@@ -27,18 +26,16 @@ class Plugin:
         self.controllers = []
         self.has_footswitch = False
         self.category = category
-        # self.info_dict = info   # TODO could store this but not sure we need to
 
+    @property
     def is_bypassed(self):
         param = self.parameters.get(":bypass")  # TODO tokenize
-        if param is not None:
-            return param.value
-        return True
+        return True if param is None else param.value
 
     def toggle_bypass(self):
         param = self.parameters.get(":bypass")
         if param is None:
-            return 0
+            return False
         if param is not None:
             param.value = not param.value
         return param.value  # return the new value

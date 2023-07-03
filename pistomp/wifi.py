@@ -123,7 +123,7 @@ class WiFiManager:
                 update = self.last_status
                 self.changed = False
             return update
-        return None
+        return
 
     def enable_hotspot(self):
         try:

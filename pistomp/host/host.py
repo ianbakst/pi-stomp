@@ -12,17 +12,22 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
+from abc import ABC, abstractmethod
+
+from pistomp.audiocard import AudioCard
+from pistomp.hardware import Hardware
 
 
-class Host:
-    def __init__(self):
-        self.lcd = None
+class Host(ABC):
+    audiocard: AudioCard
+    hardware: Hardware
+
+    @staticmethod
+    def noop():
         pass
 
-    def noop(self):
-        pass
-
-    def update_lcd_fs(self, bypass_change=False):
+    @abstractmethod
+    def update_lcd_fs(self, bypass_change: bool = False):
         pass
 
     def add_lcd(self, lcd):

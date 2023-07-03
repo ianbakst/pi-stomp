@@ -12,10 +12,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
+from sys import exit
 from typing import Optional
 
-from pistomp import config
+from rtmidi.midiutil import open_midioutput
 
+from pistomp import config
 from .pistompcore import Pistompcore
 from .hardware import Hardware
 
@@ -24,12 +26,16 @@ class Factory:
     __exists: bool = False
 
     @staticmethod
-    def create(handler, midiout) -> Optional[Hardware]:
+    def create() -> Optional[Hardware]:
+        try:
+            midiout, _ = open_midioutput(0)
+        except (EOFError, KeyboardInterrupt):
+            exit()
         cfg = config.load()
         version = cfg.hardware_version
         if version.major < 2:
             return
         elif (version.major >= 2) and (version.major < 3):
-            hw = Pistompcore(cfg, handler, midiout, refresh_callback=handler.update_lcd_fs)
+            hw = Pistompcore(cfg, midiout)
             Factory.__exists = True
             return hw

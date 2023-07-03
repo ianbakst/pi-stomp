@@ -12,23 +12,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with pi-stomp.  If not, see <https://www.gnu.org/licenses/>.
-
-
-def LILV_FOREACH(collection, func):
-    itr = collection.begin()
-    while itr:
-        yield func(collection.get(itr))
-        itr.next()
-        if itr.is_end():
-            break
-
-
-def DICT_GET(dict, key):
-    if key in dict:
-        return dict[key]
-    else:
-        return None
-
+def lilv_foreach(collection):
+    collection_iter = iter(collection)
+    while not collection_iter.is_end():
+        next_collection = next(collection_iter)
+        yield next_collection if next_collection.is_uri() else None
 
 def renormalize(n, left_min, left_max, right_min, right_max):
     # this remaps a value from original (left) range to new (right) range

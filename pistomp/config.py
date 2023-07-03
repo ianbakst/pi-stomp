@@ -98,11 +98,23 @@ class AnalogConfig:
         self.disable = disable
 
 
+class RelayConfig:
+    id: int
+    set_pin: int
+    reset_pin: int
+
+    def __init__(self, id: int, set_pin: int, reset_pin: int):
+        self.id = id
+        self.set_pin = set_pin
+        self.reset_pin = reset_pin
+
+
 class Config:
     hardware_version: Version
     midi_channel: int
     footswtiches: List[FootSwitchConfig]
     analog_controllers: List[AnalogConfig]
+    relays: List[RelayConfig]
 
     def __init__(
         self,
@@ -119,6 +131,7 @@ class Config:
         self.analog_controllers = (
             [] if analog_controllers is None else [AnalogConfig(**ac) for ac in analog_controllers]
         )
+        self.relays = [RelayConfig(0, 12, 16)]
 
     def dict(self) -> dict:
         d = self.__dict__

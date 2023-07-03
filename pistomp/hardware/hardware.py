@@ -17,25 +17,25 @@ from abc import abstractmethod
 from copy import deepcopy
 import logging
 import os
-import spidev
+
 from typing import Optional
+
+import rtmidi
 
 from pistomp.config import Config
 from pistomp.analogmidicontrol import AnalogMidiControl
 from pistomp.switch.footswitch import Footswitch
 from pistomp.util import constants as Token
-from pistomp.util import common as Util
 
 
 LOGGER = logging.getLogger(__name__)
 
 
 class Hardware:
-    def __init__(self, cfg: Config, mod, midiout, refresh_callback):
+    def __init__(self, cfg: Config, mod, midiout: rtmidi.MidiOut):
         LOGGER.info("Init hardware: " + type(self).__name__)
         self.mod = mod
         self.midiout = midiout
-        self.refresh_callback = refresh_callback
         self.spi = None
         self.test_pass = False
         self.test_sentinel = None
@@ -47,7 +47,7 @@ class Hardware:
         self.midi_channel = 0
 
         # Standard hardware objects (not required to exist)
-        self.relay = None
+        self.relays = []
         self.analog_controls = []
         self.encoders = []
         self.controllers = {}
@@ -55,18 +55,7 @@ class Hardware:
         self.encoder_switches = []
         self.debounce_map = None
 
-    def init_spi(self):
-        self.spi = spidev.SpiDev()
-        self.spi.open(0, 1)  # Bus 0, CE1
-        # TODO SPI bus is shared by ADC and LCD.  Ideally, they would use the same frequency.
-        # MCP3008 ADC has a max of 1MHz (higher makes it loose resolution)
-        # Color LCD needs to run at 24Mhz
-        # until we can get them on the same, we'll set ADC (the one set here) to be a slower multiple of the LCD
-        # self.spi.max_speed_hz = 24000000
-        # self.spi.max_speed_hz =  1000000
-        self.spi.max_speed_hz = 240000
-
-    def poll_controls(self):
+    def poll(self):
         # This is intended to be called periodically from main working loop to poll the instantiated controls
         for c in self.analog_controls:
             c.refresh()
@@ -151,7 +140,6 @@ class Hardware:
                 midi_cc,
                 midi_channel,
                 self.midiout,
-                refresh_callback=self.refresh_callback,
             )
             self.footswitches.append(fs)
 
@@ -236,24 +224,24 @@ class Hardware:
                         fs.add_relay(self.relay, _length == "short")
                         fs.set_display_label("byps")
                     if action.startswith(Token.PRESET):
-                        preset_value = action.split('-')[-1]
+                        preset_value = action.split("-")[-1]
                         if preset_value == Token.UP:
                             fs.add_preset(
                                 callback=self.mod.preset_incr_and_change,
-                                short=(action == Token.SHORT),
+                                short=(_length == "short"),
                             )
                             fs.set_display_label("Pre+")
                         elif preset_value == Token.DOWN:
                             fs.add_preset(
                                 callback=self.mod.preset_decr_and_change,
-                                short=(action == Token.SHORT),
+                                short=(_length == "short"),
                             )
                             fs.set_display_label("Pre-")
                         elif isinstance(preset_value, int):
                             fs.add_preset(
                                 callback=self.mod.preset_set_and_change,
                                 callback_arg=preset_value,
-                                short=(action == Token.SHORT),
+                                short=(_length == "short"),
                             )
                             fs.set_display_label(str(preset_value))
                     if f.midi_cc is not None:

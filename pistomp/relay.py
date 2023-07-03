@@ -64,3 +64,6 @@ class Relay:
         f = Path(self.sentinel_file)
         f.touch()
         shutil.chown(f, user="pistomp", group=None)
+
+    def toggle(self):
+        self.disable() if self.enabled else self.enable()
